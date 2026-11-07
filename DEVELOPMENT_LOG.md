@@ -135,3 +135,24 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`55 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
   - ไม่มี พร้อม Commit และ Push ขึ้น `origin/main` ตามคำสั่งอนุมัติของผู้ใช้
+
+---
+
+## [2026-11-07] — PHASE 8 (STANDALONE EXECUTABLE BUILD PIPELINE / WINDOWS .EXE)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนา `sentinel_x/__main__.py` เป็นจุดเข้าใช้งานสำหรับ Standalone Executable (`sentinel-x.exe`) โดยหากรันแบบไม่มีอาร์กิวเมนต์ (เช่น ดับเบิลคลิกบน Windows) จะเปิด Local-first Security Dashboard บน `http://127.0.0.1:8080` อัตโนมัติ และหากระบุอาร์กิวเมนต์จะส่งต่อไปยัง SOC CLI หรือ Release Protection CLI
+  - พัฒนา `scripts/build_exe.py` สำหรับคอมไพล์โปรเจกต์ด้วย PyInstaller (`--onefile`, `shell=False`) โดยมีระบบบังคับรัน **Anti-REA Security Audit** ก่อนเริ่ม Build และสร้างไฟล์ `sentinel-x.exe.sha256` คู่กับ `build_manifest.json` หลังคอมไพล์เสร็จ
+  - พัฒนา `scripts/build_windows.bat` สำหรับรันบนเครื่อง Windows แบบคลิกเดียว (สร้าง `.venv`, ติดตั้ง `pyinstaller` และ `pyyaml`, รัน Tests, และสร้าง `dist\sentinel-x.exe`)
+  - อัปเดตคู่มือ `docs/INSTALLATION.md` และ `README.md` พร้อมพัฒนาชุดทดสอบ `tests/test_build_exe.py`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/__main__.py`, `scripts/build_exe.py`, `scripts/build_windows.bat`, `tests/test_build_exe.py`
+  - แก้ไข: `.gitignore`, `README.md`, `docs/INSTALLATION.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ผสานการตรวจสอบ Anti-REA เข้าไปในขั้นตอน Pre-build ของ `scripts/build_exe.py` เพื่อป้องกันไม่ให้มีการแพ็กไฟล์ `.exe` หากตรวจพบ Secret หรือไฟล์ความลับหลงเหลืออยู่ในโฟลเดอร์โปรเจกต์
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 19/19 tests (`OK`)
+  - `python3 scripts/build_exe.py --dry-run` -> `DRY_RUN` (`audit_passed: true`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`59 files inventoried`, `0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อม Commit และ Push ขึ้น `origin/main` ตามคำสั่งของผู้ใช้

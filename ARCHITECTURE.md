@@ -138,3 +138,4 @@ sentinel-x/
 - **PHASE 5 — INTEGRATION:** เชื่อมต่อระบบทั้งหมดเข้าด้วยกัน รัน End-to-End Tests และรัน Anti-REA Audit กับตัวโปรเจกต์ `[COMPLETED]`
 - **PHASE 6 — RELEASE PREPARATION:** จัดทำเอกสารครบถ้วน ทบทวนความปลอดภัย และซิงค์ขึ้น GitHub `[COMPLETED]`
 - **PHASE 7 — EXTENDED SOC CAPABILITIES:** พัฒนา Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Rule Importer (`sentinel_x/detection/sigma.py`) พร้อมชุดทดสอบ `[COMPLETED]`
+- **PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE):** พัฒนา Standalone Entrypoint (`sentinel_x/__main__.py`), สคริปต์สร้างไฟล์ `.exe` พร้อมตรวจ Anti-REA ก่อน Build และสร้าง SHA-256 Build Manifest (`scripts/build_exe.py`), สคริปต์ One-Click สำหรับ Windows (`scripts/build_windows.bat`) และชุดทดสอบ `tests/test_build_exe.py` `[COMPLETED]`

@@ -44,3 +44,39 @@ python3 -m unittest discover -s tests -p "test_*.py" -v
 ```bash
 python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown
 ```
+
+---
+
+## 4. การคอมไพล์เป็นไฟล์ `.exe` สำหรับ Windows (Standalone Executable Build)
+
+คุณสามารถคอมไพล์ **Sentinel-X** ให้เป็นไฟล์ `.exe` แบบไฟล์เดียว (`dist\sentinel-x.exe`) บนเครื่อง Windows ได้โดยไม่ต้องติดตั้ง Python ในเครื่องปลายทางที่นำไปรัน:
+
+### 4.1 วิธีที่ 1: รันสคริปต์อัตโนมัติ (One-Click Build บน Windows)
+ดับเบิลคลิกหรือรันไฟล์ `scripts\build_windows.bat` ใน Command Prompt หรือ PowerShell:
+```bat
+scripts\build_windows.bat
+```
+สคริปต์จะดำเนินการอัตโนมัติครบทุกขั้นตอน:
+1. สร้าง Virtual Environment (`.venv`) และติดตั้ง `pyinstaller` + `pyyaml`
+2. รันชุดทดสอบ Unit & Integration Tests ทั้งหมด
+3. รันการตรวจสอบความปลอดภัยด้วย **Anti-REA Security Audit** ก่อนเริ่ม Build
+4. คอมไพล์เป็นไฟล์ `dist\sentinel-x.exe` พร้อมสร้างไฟล์ตรวจสอบความสมบูรณ์ `dist\sentinel-x.exe.sha256` และ `dist\build_manifest.json`
+
+### 4.2 วิธีที่ 2: รันผ่าน Python Build Script โดยตรง
+```bash
+# ทดสอบคำสั่งและตรวจความปลอดภัยก่อน Build จริง (Dry-run)
+python scripts/build_exe.py --dry-run
+
+# คอมไพล์เป็นไฟล์ Executable จริง
+pip install pyinstaller pyyaml
+python scripts/build_exe.py
+```
+
+### 4.3 การใช้งานไฟล์ `dist\sentinel-x.exe`
+- **ดับเบิลคลิก `sentinel-x.exe` โดยตรง:** เปิดใช้งาน Local Security Dashboard บน `http://127.0.0.1:8080` ทันที
+- **รันผ่าน Command Prompt / PowerShell:**
+  ```bat
+  dist\sentinel-x.exe summary
+  dist\sentinel-x.exe ingest --file data\samples\sample_security.log --sample
+  dist\sentinel-x.exe release-protection audit --root . --format markdown
+  ```

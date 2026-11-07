@@ -47,16 +47,21 @@
   - [x] รองรับการรับ Log แบบ Real-time Syslog UDP Listener (`sentinel_x/ingestion/syslog_receiver.py`)
   - [x] รองรับกฎการตรวจจับในรูปแบบ Sigma YAML Rule Importer (`sentinel_x/detection/sigma.py`, `config/rules/sample_sigma_rule.yml`)
   - [x] ชุดทดสอบ `tests/test_phase7_extensions.py` (รันผ่านครบ 14/14 tests ทั้งโปรเจกต์)
+- [x] **PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE)**:
+  - [x] พัฒนา Standalone Entrypoint (`sentinel_x/__main__.py`) รองรับทั้งการรันผ่าน CLI และการดับเบิลคลิกเปิด Local Dashboard บน Windows
+  - [x] พัฒนา `scripts/build_exe.py` (บังคับตรวจ Anti-REA Audit ก่อน Build, รัน PyInstaller แบบ `shell=False`, และสร้าง `sentinel-x.exe.sha256` + `build_manifest.json`)
+  - [x] พัฒนา `scripts/build_windows.bat` สำหรับสร้าง `.exe` แบบคลิกเดียวบนเครื่อง Windows
+  - [x] พัฒนาชุดทดสอบ `tests/test_build_exe.py` (รันผ่านครบ 19/19 tests ทั้งโปรเจกต์)
 
 ---
 
 ## 2. งานที่กำลังทำ (In Progress Tasks)
-- ไม่มี (พัฒนา ทดสอบ และเผยแพร่ขึ้น GitHub ครบทุก Phase แล้ว)
+- ไม่มี (พัฒนา ทดสอบ และซิงค์ครบทุก Phase แล้ว)
 
 ---
 
 ## 3. งานที่รอดำเนินการ (Pending Tasks)
-- ไม่มีงานค้างใน Phase 0–7
+- ไม่มีงานค้างใน Phase 0–8
 
 ---
 
@@ -77,6 +82,7 @@
 - [x] ทดสอบ Tamper Detection เมื่อไฟล์ถูกแก้ไขหลังสร้าง Signed Manifest (`test_release_protection.py`)
 - [x] ทดสอบ Secret Scanner ตรวจจับ Token/Private Key จำลอง (`test_release_protection.py` & `test_integration.py`)
 - [x] ทดสอบ Real-time UDP Syslog Ingestion และ Sigma YAML MITRE Tag Validation (`test_phase7_extensions.py`)
+- [x] ทดสอบ Pre-build Anti-REA Security Audit บล็อกการสร้าง `.exe` ทันทีหากพบไฟล์ความลับรั่วไหลในโปรเจกต์ (`test_build_exe.py`)
 
 ---
 

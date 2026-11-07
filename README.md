@@ -76,6 +76,15 @@ python3 -m sentinel_x.security.release_protection.cli verify \
   --public-key /tmp/sentinel_release_public.pem
 ```
 
+### 4. การคอมไพล์เป็นไฟล์ `.exe` บน Windows (Standalone Executable)
+```bat
+REM รันสคริปต์ One-Click Build บนเครื่อง Windows (สร้าง .venv, รัน Tests, ตรวจ Anti-REA, และสร้าง dist\sentinel-x.exe)
+scripts\build_windows.bat
+
+REM หรือตรวจสอบคำสั่ง Build แบบ Dry-run
+python scripts/build_exe.py --dry-run
+```
+
 ---
 
 ## เอกสารประกอบ (Documentation)
