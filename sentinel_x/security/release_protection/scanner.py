@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 DEFAULT_SCAN_EXCLUDED_DIRS: Set[str] = {
     ".git",
+    ".private",
     "__pycache__",
     ".venv",
     "venv",

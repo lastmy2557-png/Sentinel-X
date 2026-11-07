@@ -193,6 +193,12 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
                 self.assertTrue(fpath.is_file(), f"Missing expected release artifact: {fname}")
                 self.assertGreater(fpath.stat().st_size, 0)
 
+            manifest_data = json.loads((out_dist / "release_manifest.json").read_text(encoding="utf-8"))
+            inventoried_paths = {f["relative_path"] for f in manifest_data.get("files", [])}
+            self.assertNotIn("TODO.md", inventoried_paths)
+            self.assertNotIn("PROCESS.md", inventoried_paths)
+
+
     def test_patch_generator_and_windows_pe_zipapp_compiler(self) -> None:
         self.assertEqual(parse_semver("0.1.0"), (0, 1, 0))
         self.assertEqual(bump_semver("0.1.0", "patch"), "0.1.1")

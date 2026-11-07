@@ -16,6 +16,7 @@ from sentinel_x.core.exceptions import ReleaseProtectionError, SecurityBoundaryE
 
 DEFAULT_EXCLUDED_DIRS: Set[str] = {
     ".git",
+    ".private",
     "__pycache__",
     ".venv",
     "venv",
@@ -39,7 +40,10 @@ DEFAULT_EXCLUDED_PATTERNS: List[str] = [
     "*.sqlite3-wal",
     "*.sqlite3-shm",
     "release_manifest*.json",
+    "TODO.md",
+    "PROCESS.md",
 ]
+
 
 
 @dataclass(frozen=True)

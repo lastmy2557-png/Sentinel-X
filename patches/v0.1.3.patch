@@ -47,61 +47,6 @@ index d5dded5..98d32e3 100644
 +  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
 +- **ปัญหาที่พบ:**
 +  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.3`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub เพื่อให้ Vercel อัปเดต `https://sentinel-x-weld-tau.vercel.app/` อัตโนมัติ
-diff --git a/PROCESS.md b/PROCESS.md
-index 7d14b21..daa4f9f 100644
---- a/PROCESS.md
-+++ b/PROCESS.md
-@@ -6,15 +6,15 @@
- ---
- 
- ## 1. Phase ปัจจุบัน
--- เพิ่งเสร็จสิ้น: **PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT** `[COMPLETED]`
-+- เพิ่งเสร็จสิ้น: **PHASE 12 — FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL (`v0.1.3`)** `[COMPLETED]`
- - สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 24/24 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
- 
- ## 2. งานที่กำลังทำ
--- ไม่มีงานค้าง (Phase 0 – Phase 11 เสร็จสมบูรณ์ 100%)
-+- ไม่มีงานค้าง (Phase 0 – Phase 12 เสร็จสมบูรณ์ 100%)
- 
- ## 3. ขั้นตอนล่าสุดที่เสร็จแล้ว
--- พัฒนาหน้าเว็บ Official Website ของ Sentinel-X สำหรับ Deploy บน Vercel (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`)
--- เชื่อมต่อ `scripts/release_patch.py` ให้อัปเดต `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (`v0.1.2`) พร้อมคอมไพล์ `dist/sentinel-x.exe` และ Push ขึ้น GitHub
-+- อัปเกรดหน้าเว็บ Official บน Vercel (`https://sentinel-x-weld-tau.vercel.app/`) ให้สามารถสลับและใช้งานได้จริงครบทุกแท็บ (`SOC Dashboard & เคส`, `ทดลองตรวจจับ & Sigma Studio`, `สถาปัตยกรรม SOC`, `การเชื่อมต่อ API ภายนอก (/settings)`, `Anti-REA Release Protection Studio`, `ดาวน์โหลด & ตรวจสอบ SHA-256 / Patch Viewer`)
-+- เชื่อมต่อ `scripts/release_patch.py` ให้ซิงค์ไฟล์ดาวน์โหลด (`public/downloads/sentinel-x.exe`, `public/downloads/latest.patch`, `public/downloads/SHA256SUMS.txt`) และไฟล์ข้อมูล Patch (`public/patches/latest.patch`, `public/patches/PATCH_MANIFEST.json`) ลงใน `public/` อัตโนมัติทุกครั้งที่ออก Patch (`v0.1.3`)
- 
- ## 4. สถานะการ Implement
- - โครงสร้างเอกสารและไฟล์ตั้งค่าความปลอดภัยพื้นฐาน: **100% (เสร็จแล้ว)**
-@@ -22,23 +22,25 @@
- - `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions + Phase 9 API Settings UI): **100% (เสร็จแล้วและทดสอบผ่าน)**
- - `sentinel_x/security/release_protection/` (Anti-REA): **100% (เสร็จแล้วและทดสอบผ่าน)**
- - `sentinel_x/platform.py` & `sentinel_x/cli.py` (Integration): **100% (เสร็จแล้วและทดสอบผ่าน)**
--- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator, GitHub Release / Packages & Vercel Official Website: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
-+- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator, GitHub Release / Packages & Full Interactive Multi-Tab Vercel Web Console: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
- 
- ## 5. ไฟล์ที่สร้างหรือแก้ไข
--- สร้างใหม่ใน Phase 11:
-+- แก้ไขและสร้างใน Phase 12 (`v0.1.3`):
-   - `public/index.html`
-   - `public/styles.css`
-   - `public/app.js`
-   - `public/version.json`
-+  - `public/downloads/sentinel-x.exe`, `public/downloads/latest.patch`, `public/downloads/SHA256SUMS.txt`
-+  - `public/patches/latest.patch`, `public/patches/PATCH_MANIFEST.json`
-   - `vercel.json`
--  - `patches/v0.1.2.patch`
--- แก้ไขใน Phase 11:
-   - `scripts/release_patch.py`
-+  - `sentinel_x/security/release_protection/scanner.py`
-   - `tests/test_api_settings_and_release_pkg.py`
-+  - `patches/v0.1.3.patch`
-   - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
- 
- ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
--- เพิ่มโฟลเดอร์ `public/` และ `vercel.json` สำหรับให้ Vercel ดึงไป Deploy เป็นหน้าเว็บ Official ของ Sentinel-X ได้ทันทีจาก GitHub Repository `lastmy2557-png/Sentinel-X` โดยอัปเดตเวอร์ชันตาม Patch ล่าสุด (`v0.1.2`) อัตโนมัติ
-+- ทำให้ทุกแท็บบนหน้าเว็บ `https://sentinel-x-weld-tau.vercel.app/` มีเครื่องมือทำงานจริงครบทุกส่วน พร้อมออก Patch `v0.1.3` และคอมไพล์ `dist/sentinel-x.exe` ใหม่ขึ้น GitHub
- 
- ## 7. Tests ที่รันและผลลัพธ์จริง
- - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
 diff --git a/PROJECT_STATE.md b/PROJECT_STATE.md
 index 04feb14..e8f21c6 100644
 --- a/PROJECT_STATE.md
@@ -139,24 +84,6 @@ index 04feb14..e8f21c6 100644
  ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
 -- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–11 (24/24 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
 +- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–12 (24/24 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
-diff --git a/TODO.md b/TODO.md
-index 7d8fe11..5c01f4d 100644
---- a/TODO.md
-+++ b/TODO.md
-@@ -67,6 +67,13 @@
-   - [x] พัฒนาหน้าเว็บ Official Website (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมระบบจำลองการตรวจจับภัยคุกคามและแปลง Log เป็น MITRE ATT&CK แบบเรียลไทม์ (Live Simulator)
-   - [x] สร้างไฟล์ `vercel.json` ตั้งค่า Zero-Config Deployment (`outputDirectory: "public"`), Security Headers และลิงก์ดาวน์โหลดตรง `/downloads/sentinel-x.exe` และ `/downloads/latest.patch`
-   - [x] เชื่อมต่อ `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลง `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
-+- [x] **PHASE 12 — FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL (`https://sentinel-x-weld-tau.vercel.app/`)**:
-+  - [x] อัปเกรดแถบนำทางด้านบนและส่วนท้ายให้สลับแท็บได้จริง (`แสดงทุกแท็บ`, `SOC Dashboard & เคส`, `ทดลองตรวจจับ (Live Simulator)`, `สถาปัตยกรรม SOC`, `การเชื่อมต่อ API ภายนอก`, `Anti-REA Release Protection`, `ดาวน์โหลด & Patch`) พร้อมรองรับ URL ตรง `/settings`, `/dashboard`, `/simulator`, `/anti-rea`, `/releases`
-+  - [x] พัฒนาหน้า **SOC Dashboard & Incident Response** ให้ทำงานได้จริงบนเว็บ (นำเข้า Log, ตรวจจับ MITRE ATT&CK, กรองความรุนแรง, เปลี่ยนสถานะเคส, เพิ่มบันทึกการสอบสวน และดาวน์โหลดรายงาน JSON/Markdown/HTML)
-+  - [x] พัฒนา **Sigma YAML Rule Studio** และตาราง **Official MITRE ATT&CK Catalog** ที่กดจำลองเหตุการณ์ได้ทุกเทคนิค
-+  - [x] พัฒนาหน้า **ตั้งค่า API บริการภายนอก (`/settings`)** ให้กรอกค่า บันทึก ซ่อน API Key (`••••••••xxxx`) ทดสอบการเชื่อมต่อ และดูตัวอย่าง Payload ได้ครบทั้ง 5 บริการ
-+  - [x] พัฒนา **Anti-REA Studio** สำหรับสแกนโค้ดหาช่องโหว่/ความลับรั่วไหล และจำลองการลงนามดิจิทัล `Ed25519` พร้อมจำลองการแอบแก้ไขไฟล์ (`TAMPER_DETECTED`)
-+  - [x] พัฒนาเครื่องมือ **In-Browser SHA-256 File Verifier** (`crypto.subtle.digest`) และ **Live Patch Diff Viewer** (`/patches/latest.patch` & `/patches/PATCH_MANIFEST.json`)
- 
- ---
- 
 diff --git a/public/app.js b/public/app.js
 index a7d264e..766f17a 100644
 --- a/public/app.js

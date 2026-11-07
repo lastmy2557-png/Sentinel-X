@@ -140,6 +140,9 @@ def generate_git_patch(
         ":(exclude)patches",
         ":(exclude)public/downloads",
         ":(exclude)public/patches",
+        ":(exclude)TODO.md",
+        ":(exclude)PROCESS.md",
+        ":(exclude).private",
     ]
     diff_proc = subprocess.run(
         diff_cmd,

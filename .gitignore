@@ -9,6 +9,10 @@
 !.env.example
 secrets/
 credentials/
+.private/
+TODO.md
+PROCESS.md
+
 
 # Cryptographic Private Keys & Certificates (Never commit private keys)
 *.pem

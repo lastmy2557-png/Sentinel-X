@@ -1,18 +1,28 @@
 {
   "schema": "sentinel_x.patch_manifest.v1",
-  "latest_version": "0.1.4",
-  "latest_tag": "v0.1.4",
+  "latest_version": "0.1.5",
+  "latest_tag": "v0.1.5",
   "latest_patch": {
-    "from_version": "0.1.3",
-    "to_version": "0.1.4",
-    "tag": "v0.1.4",
-    "patch_file": "patches/v0.1.4.patch",
-    "patch_sha256": "022c39b7cdd53249de2d8d683c79f076d7c435c94977b0e1febd44acb709f3ab",
-    "patch_size_bytes": 156273,
-    "summary": "Redesign Official Website layout to match sentinelx.app (split hero, link-map, audit_events table, numbered 01-05 interactive manual)",
-    "generated_at": "2026-11-07T15:54:47.919392+00:00"
+    "from_version": "0.1.4",
+    "to_version": "0.1.5",
+    "tag": "v0.1.5",
+    "patch_file": "patches/v0.1.5.patch",
+    "patch_sha256": "ae297957ded1b0c57d1dc79872841092d95339bb61df32af8a20a1652c96369a",
+    "patch_size_bytes": 16781,
+    "summary": "Make TODO.md and PROCESS.md private local-only files and prepare public repository release",
+    "generated_at": "2026-11-07T16:05:23.260387+00:00"
   },
   "history": [
+    {
+      "from_version": "0.1.4",
+      "to_version": "0.1.5",
+      "tag": "v0.1.5",
+      "patch_file": "patches/v0.1.5.patch",
+      "patch_sha256": "ae297957ded1b0c57d1dc79872841092d95339bb61df32af8a20a1652c96369a",
+      "patch_size_bytes": 16781,
+      "summary": "Make TODO.md and PROCESS.md private local-only files and prepare public repository release",
+      "generated_at": "2026-11-07T16:05:23.260387+00:00"
+    },
     {
       "from_version": "0.1.3",
       "to_version": "0.1.4",

@@ -272,3 +272,25 @@
 - **ปัญหาที่พบ:**
   - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.4`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub เพื่อให้ Vercel อัปเดต `https://sentinel-x-weld-tau.vercel.app/` อัตโนมัติ
 
+---
+
+## [2026-11-07] — PHASE 14 (PRIVATE TODO/PROCESS FILES & PUBLIC GITHUB REPOSITORY `v0.1.5`)
+
+- **งานที่ทำเสร็จ:**
+  - แยกไฟล์ `TODO.md` และ `PROCESS.md` เป็นไฟล์แบบ **Private** (เก็บไว้เฉพาะในเครื่องและสำรองไว้ในโฟลเดอร์ `.private/TODO.md`, `.private/PROCESS.md`):
+    1. เพิ่ม `TODO.md`, `PROCESS.md`, และ `.private/` ใน `.gitignore`
+    2. ถอน `TODO.md` และ `PROCESS.md` ออกจาก Git index (`git rm --cached TODO.md PROCESS.md`) เพื่อไม่ให้แสดงบน Public Repository
+    3. ยกเว้น `TODO.md`, `PROCESS.md`, และ `.private` ใน `sentinel_x/security/release_protection/inventory.py`, `scanner.py`, และ `scripts/release_patch.py` รวมถึงล้างบล็อก diff ของ `TODO.md` และ `PROCESS.md` ออกจากไฟล์ `.patch`
+  - เปลี่ยนสถานะ GitHub Repository `https://github.com/lastmy2557-png/Sentinel-X` จาก `private` เป็น **`public`**
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - แก้ไข: `.gitignore`, `sentinel_x/security/release_protection/inventory.py`, `sentinel_x/security/release_protection/scanner.py`, `scripts/release_patch.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `DEVELOPMENT_LOG.md`
+  - ถอนออกจาก Public Git (คงไว้ในเครื่องแบบ Private): `TODO.md`, `PROCESS.md` (และ `.private/TODO.md`, `.private/PROCESS.md`)
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ `git rm --cached` คู่กับ `.gitignore` และ `DEFAULT_EXCLUDED_PATTERNS` เพื่อให้ไฟล์ `TODO.md` และ `PROCESS.md` ยังคงอยู่ครบถ้วนบนเครื่องสำหรับใช้ติดตามงานภายใน แต่ไม่ถูกเผยแพร่ออกไปสู่สาธารณะเมื่อเปิด Repository เป็น Public
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมออก Patch `v0.1.5`, คอมไพล์ `dist/sentinel-x.exe` ใหม่, Push ขึ้น GitHub และเปิด Repository เป็น Public
+
+
