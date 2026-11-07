@@ -1,0 +1,117 @@
+# Sentinel-X — บันทึกการพัฒนา (`DEVELOPMENT_LOG.md`)
+
+---
+
+## [2026-11-06] — PHASE 0 (DISCOVERY) & PHASE 1 (ARCHITECTURE)
+
+- **งานที่ทำเสร็จ:**
+  - ตรวจสอบ Workspace (`/home/antigravity/lastmy2557-png/Sentinel-X`), สถานะ Git (`main`), Remote (`origin`), และเครื่องมือในระบบ (`Python 3.11.2`, `uv 0.13.7`, `git 2.39.5`)
+  - สร้างไฟล์ `.gitignore` และ `.env.example` เพื่อป้องกันการรั่วไหลของข้อมูลสำคัญ
+  - ออกแบบสถาปัตยกรรม Modular Monolith สำหรับ Core SOC และโมดูลแยกอิสระ Anti-REA (`sentinel_x/security/release_protection/`)
+  - จัดทำเอกสารควบคุมสถานะโปรเจกต์ครบทั้ง 5 ไฟล์ (`ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`)
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `.gitignore`, `.env.example`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ Python 3.11+ และ SQLite (Parameterized Queries) เป็นแกนหลักแบบ Local-first
+  - แยกโมดูล `release_protection` ออกจากระบบ SOC หลักอย่างสมบูรณ์
+- **Tests ที่รันและผลการทดสอบ:**
+  - ตรวจสอบโครงสร้างไฟล์และสถานะ Git (Read-only checks) ผ่านเรียบร้อย (Automated unit tests จะเริ่มใน Phase 2)
+- **ปัญหาที่พบ:**
+  - ไม่มีปัญหาในโปรเจกต์ พร้อมเข้าสู่ Phase 2 (Foundation)
+
+---
+
+## [2026-11-06] — PHASE 2 (FOUNDATION)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนา `sentinel_x/core/` ครบทุกส่วน: `exceptions.py`, `config.py`, `audit.py`, `models.py`, `database.py`
+  - พัฒนาชุดทดสอบ `tests/test_foundation.py` ครอบคลุมการตรวจสอบ Config, การซ่อน Secret, การป้องกัน Log Injection, การตรวจสอบ MITRE Technique ID และการป้องกัน SQL Injection ใน SQLite
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/__init__.py`, `sentinel_x/core/__init__.py`, `sentinel_x/core/exceptions.py`, `sentinel_x/core/config.py`, `sentinel_x/core/audit.py`, `sentinel_x/core/models.py`, `sentinel_x/core/database.py`, `tests/__init__.py`, `tests/test_foundation.py`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ `unittest` มาตรฐานของ Python 3.11 เพื่อให้รันทดสอบได้ทันทีในทุกสภาพแวดล้อมโดยไม่ต้องติดตั้งไลบรารีภายนอกเพิ่มเติม
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 4/4 tests (`OK`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมเข้าสู่ Phase 3 (Core SOC)
+
+---
+
+## [2026-11-06] — PHASE 3 (CORE SOC)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนาระบบจัดการ Security Logs (`sentinel_x/ingestion/`): รองรับ JSON, Syslog/SSH/Sudo, Web Access (พร้อม URL decoding), Custom Parser Registry, Search/Filter, Event Correlation และ Path Traversal / Size Limit Guard
+  - พัฒนา Threat Detection Engine & Official MITRE ATT&CK (`sentinel_x/detection/`): รองรับ Single-event และ Time-window Correlation, Rule Management, Dry-run Rule Testing และสร้าง Alert พร้อมคำอธิบายและหลักฐาน
+  - พัฒนา Incident Management & Reporting (`sentinel_x/incidents/`, `sentinel_x/reporting/`): สร้าง/อัปเดตสถานะและ Severity, บันทึก Investigation Notes, เชื่อมโยง Events/Alerts, Timeline อัตโนมัติ, ส่งออกรายงาน JSON/Markdown/XSS-safe HTML
+  - พัฒนา External Security Connectors (`sentinel_x/integrations/`) และ Security Dashboard & HTTP Server (`sentinel_x/dashboard/`)
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/ingestion/*`, `sentinel_x/detection/*`, `sentinel_x/incidents/*`, `sentinel_x/reporting/*`, `sentinel_x/integrations/*`, `sentinel_x/dashboard/*`, `config/rules/default_rules.json`, `data/samples/sample_security.log`, `tests/test_soc_core.py`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ถอดรหัส URL-encoded URI ใน `WebAccessLogParser` เพื่อให้กฎตรวจจับ SQLi และ Directory Traversal ตรวจพบ Payload ที่เข้ารหัส `%20` หรือ `%2e` ได้อย่างแม่นยำ
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 7/7 tests (`OK`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมเข้าสู่ Phase 4 (Anti-REA Release Protection)
+
+---
+
+## [2026-11-06] — PHASE 4 (ANTI-REA / RELEASE PROTECTION)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนาโมดูลแยกอิสระ `sentinel_x/security/release_protection/` ครบทุกส่วน:
+    - `inventory.py`: คำนวณ SHA-256 File Inventory แบบ Deterministic พร้อมป้องกัน Symlink Traversal
+    - `manifest.py`: สร้างและตรวจสอบ Signed Release Manifest ด้วย OpenSSL 3.0 Ed25519 Digital Signature (External Key เท่านั้น) พร้อมตรวจจับการแก้ไข ลบ หรือเพิ่มไฟล์โดยไม่ได้รับอนุญาต (Tamper Detection)
+    - `scanner.py`: สแกนหา Secrets (พร้อมปิดบังค่า Secret ในผลลัพธ์), Sensitive Files, Debug Artifacts, Source Maps และการตั้งค่า Build ที่ไม่ปลอดภัย
+    - `report.py`: สร้างรายงาน Security Audit Report ทั้งรูปแบบ JSON และ Markdown พร้อมระบุขอบเขตความสามารถตามจริง
+    - `cli.py`: Release Verification CLI (`keygen`, `inventory`, `sign`, `verify`, `audit`)
+  - พัฒนาและรันชุดทดสอบแยกอิสระ `tests/test_release_protection.py`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/security/__init__.py`, `sentinel_x/security/release_protection/__init__.py`, `inventory.py`, `manifest.py`, `scanner.py`, `report.py`, `cli.py`, `tests/test_release_protection.py`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ OpenSSL 3.0 Ed25519 Digital Signature ผ่าน `subprocess.run(..., shell=False)` เพื่อความปลอดภัยสูงสุดโดยไม่ต้องติดตั้งไลบรารีภายนอกเพิ่มเติม
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 10/10 tests (`OK`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมเข้าสู่ Phase 5 (Integration)
+
+---
+
+## [2026-11-06] — PHASE 5 (INTEGRATION)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนา `sentinel_x/platform.py` (`SentinelXPlatform`) เชื่อมต่อระบบ Ingestion, Detection, Incident Management, Reporting, Integrations และ Dashboard เข้าด้วยกัน
+  - พัฒนา `sentinel_x/cli.py` สำหรับการสั่งงานแพลตฟอร์มผ่าน Command Line
+  - พัฒนาและรัน `tests/test_integration.py` ทดสอบการทำงานร่วมกันตั้งแต่ต้นจนจบ และรัน Anti-REA Self-Audit กับโปรเจกต์ Sentinel-X จริง
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/platform.py`, `sentinel_x/cli.py`, `tests/test_integration.py`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ให้ `SentinelXPlatform` เชื่อม callback `on_event_ingested` เข้ากับ `ThreatDetectionEngine.evaluate_event` โดยตรงเพื่อให้ทุก Log ที่ถูก Ingest ผ่านการตรวจจับภัยคุกคามทันที
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 12/12 tests (`OK`)
+  - Anti-REA Self-Audit บน `/home/antigravity/lastmy2557-png/Sentinel-X` -> `PASSED` (0 findings)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมเข้าสู่ Phase 6 (Release Preparation)
+
+---
+
+## [2026-11-06] — PHASE 6 (RELEASE PREPARATION)
+
+- **งานที่ทำเสร็จ:**
+  - จัดทำเอกสารคู่มือการติดตั้ง (`docs/INSTALLATION.md`), การตั้งค่า (`docs/CONFIGURATION.md`), นโยบายความปลอดภัย (`docs/SECURITY.md`), และอัปเดต `README.md`
+  - สร้าง `requirements.txt` และ `pyproject.toml`
+  - ปรับปรุง `.gitignore` ให้อนุญาต `!data/samples/*.log` สำหรับไฟล์ทดสอบ
+  - รันชุดทดสอบทั้งหมดและรัน Anti-REA Audit (Secret Scan, Sensitive File Check, Debug/SourceMap Check, Build Config Check) ตรวจสอบทั้งโปรเจกต์
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `requirements.txt`, `pyproject.toml`, `docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`
+  - แก้ไข: `README.md`, `.gitignore`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - รักษาโครงสร้าง Zero External Runtime Dependencies (ใช้ Python 3.11+ Standard Library และ OpenSSL 3.0) เพื่อลดความเสี่ยงด้าน Supply Chain และความซับซ้อนในการติดตั้ง
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 12/12 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`51 files inventoried`, `0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี ได้รับอนุมัติจากผู้ใช้ให้ดำเนินการ Commit และ Push ขึ้น GitHub (`origin/main`) เรียบร้อยแล้ว

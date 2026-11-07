@@ -1,0 +1,77 @@
+# ==============================================================================
+# Sentinel-X .gitignore
+# Tailored for Python 3.11+ Cybersecurity Platform & Release Protection (Anti-REA)
+# ==============================================================================
+
+# Environment & Secrets (Keep .env.example tracked)
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+
+# Cryptographic Private Keys & Certificates (Never commit private keys)
+*.pem
+*.key
+*.p12
+*.pfx
+*.key.json
+!*public*.pem
+!*public*.key
+
+# Python Virtual Environments & Bytecode
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+wheels/
+.Python
+
+# Testing & Coverage Artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Local Databases & Runtime Storage
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+data/runtime/
+data/local/
+uploads/
+
+# Logs & Temporary Files
+*.log
+!data/samples/*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# IDE & OS Specific Files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Node.js (if any frontend tooling is used in the future)
+node_modules/

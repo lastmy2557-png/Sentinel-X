@@ -1,0 +1,7 @@
+# Sentinel-X Runtime Dependencies
+# Sentinel-X is designed to run out-of-the-box using the Python 3.11+ Standard Library
+# (sqlite3, json, hashlib, hmac, http.server, unittest) and OpenSSL 3.0+ for Ed25519 signing,
+# minimizing third-party supply-chain exposure.
+#
+# Optional development/testing runners:
+# pytest>=8.0.0

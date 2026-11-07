@@ -1,0 +1,42 @@
+[
+  {
+    "rule_id": "SX-DET-001",
+    "name": "SSH Password Brute Force (Correlation)",
+    "description": "Detects multiple failed SSH authentication attempts from the same source IP within 300 seconds. Scope limitation: Volumetric single-source SSH password guessing.",
+    "severity": "HIGH",
+    "enabled": true,
+    "mitre": {
+      "technique_id": "T1110.001",
+      "technique_name": "Brute Force: Password Guessing",
+      "tactic": "Credential Access"
+    },
+    "conditions": {
+      "category": "AUTHENTICATION",
+      "action": "ssh_login",
+      "outcome": "failure",
+      "correlation": {
+        "group_by": "source_ip",
+        "threshold": 3,
+        "window_seconds": 300
+      }
+    },
+    "explanation_template": "Detected {match_count} failed SSH login attempts from source IP '{source_ip}' targeting host '{source_host}' (last user '{user}') within 300 seconds."
+  },
+  {
+    "rule_id": "SX-DET-002",
+    "name": "Web Application SQL Injection / Path Traversal Probe",
+    "description": "Detects common SQL injection or directory traversal payloads in HTTP requests.",
+    "severity": "HIGH",
+    "enabled": true,
+    "mitre": {
+      "technique_id": "T1190",
+      "technique_name": "Exploit Public-Facing Application",
+      "tactic": "Initial Access"
+    },
+    "conditions": {
+      "category": "WEB",
+      "message_regex": "(?i)(union\\s+select|\\.\\./\\.\\./|/etc/passwd|information_schema|sleep\\(\\d+\\))"
+    },
+    "explanation_template": "Suspicious web exploit pattern detected from '{source_ip}' on host '{source_host}': {message}"
+  }
+]

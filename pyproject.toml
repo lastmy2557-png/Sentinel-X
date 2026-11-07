@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-x"
+version = "0.1.0"
+description = "Local-first Cybersecurity, SOC, Threat Detection, Incident Response, and Release Protection (Anti-REA) Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Sentinel-X Engineering Team" }
+]
+dependencies = []
+
+[project.scripts]
+sentinel-x = "sentinel_x.cli:main"
+sentinel-x-release-protection = "sentinel_x.security.release_protection.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sentinel_x*"]

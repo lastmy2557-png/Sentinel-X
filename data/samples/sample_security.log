@@ -1,0 +1,5 @@
+2026-11-06T10:00:01Z bastion-01 sshd[1010]: Failed password for invalid user admin from 203.0.113.45 port 51234 ssh2
+2026-11-06T10:00:05Z bastion-01 sshd[1011]: Failed password for invalid user admin from 203.0.113.45 port 51235 ssh2
+2026-11-06T10:00:09Z bastion-01 sshd[1012]: Failed password for root from 203.0.113.45 port 51236 ssh2
+198.51.100.77 - - [06/Nov/2026:10:01:15 +0000] "GET /products?id=1%20UNION%20SELECT%20username,password%20FROM%20users HTTP/1.1" 500 512 "-" "Mozilla/5.0"
+{"timestamp": "2026-11-06T10:02:00Z", "source_host": "app-prod-02", "source_ip": "10.10.1.50", "user": "webuser", "action": "command_exec", "outcome": "success", "category": "PROCESS", "message": "cat /etc/shadow"}
