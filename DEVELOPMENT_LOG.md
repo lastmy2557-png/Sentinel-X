@@ -115,3 +115,23 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`51 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
   - ไม่มี ได้รับอนุมัติจากผู้ใช้ให้ดำเนินการ Commit และ Push ขึ้น GitHub (`origin/main`) เรียบร้อยแล้ว
+
+---
+
+## [2026-11-07] — PHASE 7 (EXTENDED SOC CAPABILITIES)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนา `sentinel_x/ingestion/syslog_receiver.py` (`SyslogUDPReceiver`) สำหรับรับข้อมูล Syslog แบบ Real-time ผ่าน UDP (`127.0.0.1` เป็นค่าเริ่มต้น) พร้อมจำกัดขนาดแพ็กเกจและส่งเข้า Detection Engine ทันที
+  - พัฒนา `sentinel_x/detection/sigma.py` (`parse_sigma_yaml_to_rule`, `load_sigma_rule_file`) สำหรับนำเข้ากฎตรวจจับแบบ Sigma YAML โดยใช้ `yaml.safe_load` และตรวจสอบ Tag ของ MITRE ATT&CK กับฐานข้อมูลทางการ
+  - เพิ่มไฟล์ตัวอย่าง `config/rules/sample_sigma_rule.yml` และเพิ่มคำสั่ง CLI `import-sigma` และ `syslog-listen`
+  - พัฒนาและรันชุดทดสอบ `tests/test_phase7_extensions.py`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `sentinel_x/ingestion/syslog_receiver.py`, `sentinel_x/detection/sigma.py`, `config/rules/sample_sigma_rule.yml`, `tests/test_phase7_extensions.py`
+  - แก้ไข: `sentinel_x/ingestion/__init__.py`, `sentinel_x/detection/__init__.py`, `sentinel_x/detection/engine.py`, `sentinel_x/cli.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ `yaml.safe_load` เท่านั้นในการอ่านไฟล์กฎ YAML เพื่อป้องกันช่องโหว่ Arbitrary Object Deserialization
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 14/14 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`55 files inventoried`, `0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อม Commit และ Push ขึ้น `origin/main` ตามคำสั่งอนุมัติของผู้ใช้

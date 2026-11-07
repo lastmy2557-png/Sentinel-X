@@ -43,6 +43,10 @@
 - [x] **PHASE 6 — RELEASE PREPARATION**:
   - [x] จัดทำ `README.md`, เอกสารการติดตั้ง/ตั้งค่า/ความปลอดภัย (`docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`), `requirements.txt`, `pyproject.toml`, ตรวจสอบ Dependency License และทำ Secret Scan ทั้งโปรเจกต์ (`PASSED` 0 findings)
 - [x] **Git Commit & Push ขึ้น GitHub**: ตรวจสอบ `git status`, รัน Test ทั้งหมด (`12/12 OK`), ทำ Secret Scan (`PASSED`) และได้รับอนุมัติจากผู้ใช้ให้ Commit & Push ขึ้น `origin/main`
+- [x] **PHASE 7 — EXTENDED SOC CAPABILITIES**:
+  - [x] รองรับการรับ Log แบบ Real-time Syslog UDP Listener (`sentinel_x/ingestion/syslog_receiver.py`)
+  - [x] รองรับกฎการตรวจจับในรูปแบบ Sigma YAML Rule Importer (`sentinel_x/detection/sigma.py`, `config/rules/sample_sigma_rule.yml`)
+  - [x] ชุดทดสอบ `tests/test_phase7_extensions.py` (รันผ่านครบ 14/14 tests ทั้งโปรเจกต์)
 
 ---
 
@@ -52,7 +56,7 @@
 ---
 
 ## 3. งานที่รอดำเนินการ (Pending Tasks)
-- ไม่มีงานค้างใน Phase 0–6
+- ไม่มีงานค้างใน Phase 0–7
 
 ---
 
@@ -72,9 +76,9 @@
 - [x] ทดสอบ Output Encoding (XSS Prevention) ใน Dashboard/Report HTML (`test_soc_core.py`)
 - [x] ทดสอบ Tamper Detection เมื่อไฟล์ถูกแก้ไขหลังสร้าง Signed Manifest (`test_release_protection.py`)
 - [x] ทดสอบ Secret Scanner ตรวจจับ Token/Private Key จำลอง (`test_release_protection.py` & `test_integration.py`)
+- [x] ทดสอบ Real-time UDP Syslog Ingestion และ Sigma YAML MITRE Tag Validation (`test_phase7_extensions.py`)
 
 ---
 
 ## 7. งานในอนาคต (Future Enhancements)
-- รองรับการรับ Log แบบ Real-time Syslog UDP/TCP Listener
-- รองรับกฎการตรวจจับในรูปแบบ Sigma Rule Importer
+- รองรับ Syslog over TLS (RFC 5425) สำหรับสภาพแวดล้อมข้ามเครือข่าย

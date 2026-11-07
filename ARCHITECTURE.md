@@ -136,4 +136,5 @@ sentinel-x/
 - **PHASE 3 — CORE SOC:** พัฒนา Ingestion, Detection Engine + MITRE ATT&CK, Incidents, Reporting, Connectors, และ Dashboard พร้อม Tests `[COMPLETED]`
 - **PHASE 4 — ANTI-REA:** พัฒนา `sentinel_x/security/release_protection/` พร้อม Release Verification CLI และ Tests `[COMPLETED]`
 - **PHASE 5 — INTEGRATION:** เชื่อมต่อระบบทั้งหมดเข้าด้วยกัน รัน End-to-End Tests และรัน Anti-REA Audit กับตัวโปรเจกต์ `[COMPLETED]`
-- **PHASE 6 — RELEASE PREPARATION:** จัดทำเอกสารครบถ้วน ทบทวนความปลอดภัย และเตรียมสถานะ Git เพื่อรอการอนุมัติ Commit/Push `[COMPLETED]`
+- **PHASE 6 — RELEASE PREPARATION:** จัดทำเอกสารครบถ้วน ทบทวนความปลอดภัย และซิงค์ขึ้น GitHub `[COMPLETED]`
+- **PHASE 7 — EXTENDED SOC CAPABILITIES:** พัฒนา Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Rule Importer (`sentinel_x/detection/sigma.py`) พร้อมชุดทดสอบ `[COMPLETED]`

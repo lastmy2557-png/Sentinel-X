@@ -1,0 +1,22 @@
+title: Web Shell Execution Indicator in HTTP Request
+id: SX-SIGMA-001
+status: active
+description: >
+  Detects common web shell parameters and command execution strings in HTTP access logs.
+  Scope limitation: Pattern-based detection on URI parameters; encrypted POST bodies are not inspected.
+level: critical
+tags:
+  - attack.persistence
+  - attack.t1505.003
+logsource:
+  category: web
+detection:
+  selection:
+    category: WEB
+    message|contains:
+      - cmd=whoami
+      - cmd=id
+      - c99.php
+      - r57.php
+      - shell.jsp
+  condition: selection

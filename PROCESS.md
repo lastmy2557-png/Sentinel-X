@@ -6,47 +6,48 @@
 ---
 
 ## 1. Phase ปัจจุบัน
-- เพิ่งเสร็จสิ้น: **PHASE 6 — RELEASE PREPARATION & GIT PUSH** `[COMPLETED]`
-- สถานะปัจจุบัน: **`[COMPLETED]`** (โค้ด เอกสาร และชุดทดสอบทั้งหมดถูก Commit และ Push ขึ้น `origin/main` เรียบร้อยแล้ว)
+- เพิ่งเสร็จสิ้น: **PHASE 7 — EXTENDED SOC CAPABILITIES** `[COMPLETED]`
+- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 14/14 tests และซิงค์ขึ้น `origin/main` เรียบร้อยแล้ว)
 
 ## 2. งานที่กำลังทำ
-- ไม่มีงานค้าง (Baseline v0.1.0 เสร็จสมบูรณ์ 100%)
+- ไม่มีงานค้าง (Phase 0 – Phase 7 เสร็จสมบูรณ์ 100%)
 
 ## 3. ขั้นตอนล่าสุดที่เสร็จแล้ว
-- จัดทำเอกสารการติดตั้ง การตั้งค่า และความปลอดภัย (`README.md`, `docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`) รวมถึง `requirements.txt` และ `pyproject.toml`
-- ปรับปรุง `.gitignore` ให้เก็บไฟล์ทดสอบ `data/samples/*.log` ในขณะที่ยังคงบล็อก `*.log` อื่นๆ
-- รันชุดทดสอบทั้งหมด (`12/12 tests OK`) และรัน Anti-REA Audit ทั้งโปรเจกต์ (`PASSED`, `0 findings`, `51 files inventoried`)
-- ได้รับอนุมัติจากผู้ใช้ และดำเนินการ Commit & Push ขึ้น GitHub (`origin/main`)
+- พัฒนา `sentinel_x/ingestion/syslog_receiver.py` สำหรับรับ Log แบบ Real-time UDP Syslog
+- พัฒนา `sentinel_x/detection/sigma.py` และ `config/rules/sample_sigma_rule.yml` สำหรับนำเข้ากฎตรวจจับแบบ Sigma YAML พร้อมตรวจสอบ Official MITRE ATT&CK Tag
+- เพิ่มคำสั่ง `import-sigma` และ `syslog-listen` ใน `sentinel_x/cli.py`
+- พัฒนาและรันชุดทดสอบ `tests/test_phase7_extensions.py` ผ่านครบ 14/14 tests ทั้งโปรเจกต์ และผ่าน Anti-REA Audit (`PASSED`, `55 files inventoried`, `0 findings`)
 
 ## 4. สถานะการ Implement
 - โครงสร้างเอกสารและไฟล์ตั้งค่าความปลอดภัยพื้นฐาน: **100% (เสร็จแล้ว)**
 - `sentinel_x/core/` (Foundation): **100% (เสร็จแล้วและทดสอบผ่าน)**
-- `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC): **100% (เสร็จแล้วและทดสอบผ่าน)**
+- `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/security/release_protection/` (Anti-REA): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/platform.py` & `sentinel_x/cli.py` (Integration): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - Release Preparation (`docs/`, `README.md`, `requirements.txt`, `pyproject.toml`): **100% (เสร็จแล้วและตรวจสอบผ่าน)**
 
 ## 5. ไฟล์ที่สร้างหรือแก้ไข
-- สร้างใหม่ใน Phase 6:
-  - `requirements.txt`
-  - `pyproject.toml`
-  - `docs/INSTALLATION.md`
-  - `docs/CONFIGURATION.md`
-  - `docs/SECURITY.md`
-- แก้ไขใน Phase 6:
-  - `README.md`
-  - `.gitignore`
+- สร้างใหม่ใน Phase 7:
+  - `sentinel_x/ingestion/syslog_receiver.py`
+  - `sentinel_x/detection/sigma.py`
+  - `config/rules/sample_sigma_rule.yml`
+  - `tests/test_phase7_extensions.py`
+- แก้ไขใน Phase 7:
+  - `sentinel_x/ingestion/__init__.py`
+  - `sentinel_x/detection/__init__.py`
+  - `sentinel_x/detection/engine.py`
+  - `sentinel_x/cli.py`
   - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 
 ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
-- เพิ่ม `pyproject.toml` กำหนด CLI entrypoints `sentinel-x` และ `sentinel-x-release-protection`
-- เพิ่ม `!data/samples/*.log` ใน `.gitignore` เพื่อให้ไฟล์ข้อมูลตัวอย่างสำหรับชุดทดสอบไม่ถูกบล็อกโดยกฎ `*.log`
+- เพิ่ม `SyslogUDPReceiver` ที่จำกัดขนาด Datagram สูงสุด 8192 bytes และตัด Header `<PRI>` ก่อนส่งเข้า `LogIngestionService`
+- เพิ่ม `parse_sigma_yaml_to_rule` ที่ใช้ `yaml.safe_load` เท่านั้น และบังคับตรวจสอบ `attack.tXXXX` กับ `OFFICIAL_MITRE_CATALOG`
 
 ## 7. Tests ที่รันและผลลัพธ์จริง
 - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- ผลลัพธ์: `Ran 12 tests in 0.858s — OK`
+- ผลลัพธ์: `Ran 14 tests in 1.633s — OK`
 - คำสั่ง Anti-REA Audit: `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown`
-- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 51`, `Total Findings: 0`)
+- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 55`, `Total Findings: 0`)
 
 ## 8. Error และปัญหาที่ยังไม่แก้
 - ไม่มี Error ในโค้ดของโปรเจกต์
@@ -58,14 +59,14 @@
 ```bash
 # ตรวจสอบสถานะ Git
 git -C /home/antigravity/lastmy2557-png/Sentinel-X status -uall
-# รันชุดทดสอบทั้งหมด
+# รันชุดทดสอบทั้งหมด (14 tests)
 python3 -m unittest discover -s tests -p "test_*.py" -v
 # รัน Anti-REA Audit ตรวจสอบโปรเจกต์
 python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown
 ```
 
 ## 11. งานถัดไปที่ต้องทำอย่างชัดเจน
-1. พร้อมรับคำสั่งต่อยอดฟีเจอร์เพิ่มเติมในอนาคต (เช่น Real-time Syslog listener หรือ Sigma Rule importer ตามที่ระบุใน `TODO.md` หมวดงานในอนาคต)
+1. ระบบทั้งหมดใน Phase 0–7 เสร็จสมบูรณ์และพร้อมใช้งานจริง สามารถสั่งรัน CLI หรือ Dashboard ได้ทันที
 
 ## 12. การตัดสินใจทางเทคนิค
 - เลือกใช้ SQLite แบบ WAL mode ร่วมกับ Parameterized SQL เพื่อความปลอดภัยและประสิทธิภาพสูงสุดในการทำงานแบบ Local-first

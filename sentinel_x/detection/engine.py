@@ -206,6 +206,14 @@ class ThreatDetectionEngine:
             loaded.append(rule)
         return loaded
 
+    def load_sigma_rule(self, yaml_path: Path | str) -> DetectionRule:
+        """Load, validate, and register a Sigma YAML rule file."""
+        from sentinel_x.detection.sigma import load_sigma_rule_file
+
+        rule = load_sigma_rule_file(yaml_path)
+        self.register_rule(rule)
+        return rule
+
     def evaluate_event(self, event: NormalizedSecurityEvent) -> List[Alert]:
         """Evaluate a newly ingested event against all enabled detection rules."""
         rules = self.db.list_rules(enabled_only=True)

@@ -12,12 +12,13 @@
   - `PHASE 4 — ANTI-REA` `[COMPLETED]`
   - `PHASE 5 — INTEGRATION` `[COMPLETED]`
   - `PHASE 6 — RELEASE PREPARATION` `[COMPLETED]`
-- **สถานะถัดไป:** `[COMPLETED]` — พัฒนา ทดสอบ และซิงค์ขึ้น GitHub (`origin/main`) เสร็จสมบูรณ์
+  - `PHASE 7 — EXTENDED SOC CAPABILITIES` `[COMPLETED]`
+- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–7
 
 ## 3. Architecture ปัจจุบัน (Current Architecture)
 - **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first)
 - **ฐานข้อมูล:** SQLite (`sentinel_x/core/database.py`) พร้อม Parameterized Queries
-- **โมดูลหลัก:** `core`, `ingestion`, `detection` (พร้อม MITRE ATT&CK), `incidents`, `reporting`, `integrations`, `dashboard`, `platform`, `cli`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
+- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard`, `platform`, `cli`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
 - ดูรายละเอียดทั้งหมดใน `ARCHITECTURE.md`
 
 ## 4. ฟีเจอร์ที่พัฒนาแล้ว (Implemented Features)
@@ -32,8 +33,9 @@
 - [x] External Security Connectors (`sentinel_x/integrations/`)
 - [x] Security Dashboard & Local-first HTTP API (`sentinel_x/dashboard/`)
 - [x] ระบบ Anti-REA / Release Protection (`sentinel_x/security/release_protection/`)
-- [x] Unified Platform Orchestrator (`sentinel_x/platform.py`) & Main CLI (`sentinel_x/cli.py`) พร้อม Integration Tests (`tests/test_integration.py` ผ่าน 12/12 tests ทั้งโปรเจกต์)
+- [x] Unified Platform Orchestrator (`sentinel_x/platform.py`) & Main CLI (`sentinel_x/cli.py`) พร้อม Integration Tests (`tests/test_integration.py`)
 - [x] เอกสารประกอบและการเตรียม Release (`README.md`, `docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`, `requirements.txt`, `pyproject.toml`)
+- [x] Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Detection Rule Importer (`sentinel_x/detection/sigma.py`, `tests/test_phase7_extensions.py` ผ่านครบ 14/14 tests ทั้งโปรเจกต์)
 
 ## 5. ปัญหาที่ทราบและข้อจำกัด (Known Issues & Limitations)
 - Wrapper ของ `gh` CLI ในสภาพแวดล้อม VM มีข้อจำกัดเรื่อง `tar utime` บน `/opt` แต่สามารถใช้คำสั่ง `git` มาตรฐานผ่าน credential proxy ได้ปกติ
@@ -45,4 +47,4 @@
 3. แยกข้อมูลจริง (Real Telemetry) ออกจากข้อมูลตัวอย่าง (Sample Data) อย่างชัดเจนในระดับฐานข้อมูลและ Dashboard
 
 ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
-- **สถานะ:** `[COMPLETED]` — พัฒนา ทดสอบ และเผยแพร่ขึ้น GitHub Repository (`origin/main`) เรียบร้อยแล้ว
+- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–7 (14/14 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)

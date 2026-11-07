@@ -78,6 +78,13 @@ def build_cli_parser() -> argparse.ArgumentParser:
     p_srv.add_argument("--host", default="127.0.0.1", help="Bind host (default 127.0.0.1)")
     p_srv.add_argument("--port", type=int, default=8080, help="Bind port (default 8080)")
 
+    p_sig = sub.add_parser("import-sigma", help="Import and register a Sigma YAML detection rule")
+    p_sig.add_argument("--file", required=True, help="Path to Sigma YAML rule file")
+
+    p_sys = sub.add_parser("syslog-listen", help="Start real-time UDP Syslog listener")
+    p_sys.add_argument("--host", default="127.0.0.1", help="Bind host (default 127.0.0.1)")
+    p_sys.add_argument("--port", type=int, default=5514, help="UDP port (default 5514)")
+
     return parser
 
 
@@ -160,6 +167,28 @@ def main(argv: Optional[List[str]] = None) -> int:
                 text = platform.reporting.export_markdown(args.id, out_path)
             print(text)
             return 0
+
+    if args.command == "import-sigma":
+        rule = platform.detection.load_sigma_rule(Path(args.file))
+        print(json.dumps({"status": "IMPORTED", "rule": rule.to_dict()}, indent=2))
+        return 0
+
+    if args.command == "syslog-listen":
+        from sentinel_x.ingestion.syslog_receiver import SyslogUDPReceiver
+
+        receiver = SyslogUDPReceiver(
+            ingestion_service=platform.ingestion,
+            host=args.host,
+            port=args.port,
+        )
+        print(f"Sentinel-X UDP Syslog Receiver listening on {args.host}:{receiver.bound_port}")
+        try:
+            receiver.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            receiver.stop()
+        return 0
 
     if args.command == "serve":
         srv_cfg = SentinelConfig(host=args.host, port=args.port, db_path=config.db_path)

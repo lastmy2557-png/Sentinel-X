@@ -8,6 +8,7 @@ from sentinel_x.ingestion.parsers import (
     WebAccessLogParser,
 )
 from sentinel_x.ingestion.service import LogIngestionService
+from sentinel_x.ingestion.syslog_receiver import SyslogUDPReceiver
 
 __all__ = [
     "BaseLogParser",
@@ -15,5 +16,6 @@ __all__ = [
     "LogIngestionService",
     "LogParserRegistry",
     "SyslogAuthParser",
+    "SyslogUDPReceiver",
     "WebAccessLogParser",
 ]
