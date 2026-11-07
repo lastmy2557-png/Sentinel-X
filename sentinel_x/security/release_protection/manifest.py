@@ -11,6 +11,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
+import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
@@ -34,18 +36,62 @@ ANTI_REA_SCOPE_STATEMENT = (
 )
 
 
+def _resolve_openssl_executable() -> str:
+    """
+    Locate the OpenSSL binary across Linux, macOS, and Windows.
+    On Windows, automatically checks Git for Windows and standard OpenSSL directories
+    if 'openssl' is not directly on PATH.
+    """
+    direct = shutil.which("openssl")
+    if direct:
+        return direct
+
+    if os.name == "nt":
+        candidates: List[Path] = []
+        git_bin = shutil.which("git")
+        if git_bin:
+            git_root = Path(git_bin).resolve().parent.parent
+            candidates.extend(
+                [
+                    git_root / "usr" / "bin" / "openssl.exe",
+                    git_root / "mingw64" / "bin" / "openssl.exe",
+                ]
+            )
+        for env_key, default_dir in (
+            ("ProgramFiles", r"C:\Program Files"),
+            ("ProgramFiles(x86)", r"C:\Program Files (x86)"),
+        ):
+            base = Path(os.environ.get(env_key, default_dir))
+            candidates.extend(
+                [
+                    base / "Git" / "usr" / "bin" / "openssl.exe",
+                    base / "Git" / "mingw64" / "bin" / "openssl.exe",
+                    base / "OpenSSL-Win64" / "bin" / "openssl.exe",
+                    base / "OpenSSL" / "bin" / "openssl.exe",
+                ]
+            )
+        for cand in candidates:
+            if cand.is_file():
+                return str(cand)
+
+    raise ReleaseProtectionError(
+        "OpenSSL executable not found. Please ensure OpenSSL or Git for Windows is installed."
+    )
+
+
 def generate_ed25519_keypair(private_key_path: Path, public_key_path: Path) -> None:
     """
     Generate an external Ed25519 keypair using OpenSSL 3.0 (shell=False).
     Intended for storing keys in an external key directory outside the repository.
     """
+    openssl_bin = _resolve_openssl_executable()
     private_key_path.parent.mkdir(parents=True, exist_ok=True)
     public_key_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         subprocess.run(
             [
-                "openssl",
+                openssl_bin,
                 "genpkey",
                 "-algorithm",
                 "Ed25519",
@@ -57,11 +103,14 @@ def generate_ed25519_keypair(private_key_path: Path, public_key_path: Path) -> N
             text=True,
             shell=False,
         )
-        private_key_path.chmod(0o600)
+        try:
+            private_key_path.chmod(0o600)
+        except OSError:
+            pass
 
         subprocess.run(
             [
-                "openssl",
+                openssl_bin,
                 "pkey",
                 "-in",
                 str(private_key_path),
@@ -86,6 +135,7 @@ def sign_payload_ed25519(payload_bytes: bytes, private_key_path: Path) -> str:
         raise ReleaseProtectionError(
             f"External Ed25519 private key file not found: {private_key_path}"
         )
+    openssl_bin = _resolve_openssl_executable()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         msg_file = Path(tmpdir) / "payload.bin"
@@ -94,7 +144,7 @@ def sign_payload_ed25519(payload_bytes: bytes, private_key_path: Path) -> str:
         try:
             subprocess.run(
                 [
-                    "openssl",
+                    openssl_bin,
                     "pkeyutl",
                     "-sign",
                     "-inkey",
@@ -131,6 +181,7 @@ def verify_payload_ed25519(
     except Exception as exc:
         raise SignatureVerificationError(f"Malformed Base64 signature: {exc}") from exc
 
+    openssl_bin = _resolve_openssl_executable()
     with tempfile.TemporaryDirectory() as tmpdir:
         msg_file = Path(tmpdir) / "payload.bin"
         sig_file = Path(tmpdir) / "sig.bin"
@@ -139,7 +190,7 @@ def verify_payload_ed25519(
 
         proc = subprocess.run(
             [
-                "openssl",
+                openssl_bin,
                 "pkeyutl",
                 "-verify",
                 "-pubin",

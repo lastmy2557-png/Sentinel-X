@@ -150,9 +150,10 @@
   - แก้ไข: `.gitignore`, `README.md`, `docs/INSTALLATION.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 - **การตัดสินใจทางเทคนิค:**
   - ผสานการตรวจสอบ Anti-REA เข้าไปในขั้นตอน Pre-build ของ `scripts/build_exe.py` เพื่อป้องกันไม่ให้มีการแพ็กไฟล์ `.exe` หากตรวจพบ Secret หรือไฟล์ความลับหลงเหลืออยู่ในโฟลเดอร์โปรเจกต์
+  - แก้ไขไวยากรณ์ `scripts/build_windows.bat` ไม่ให้ใช้วงเล็บหลายบรรทัดใน `cmd.exe`, เพิ่มการค้นหา `openssl.exe` จาก Git for Windows ใน `manifest.py`, เพิ่ม Pure-Python Sigma YAML Parser Fallback ใน `sigma.py`, และเพิ่มระบบคอมไพล์ `.exe` ด้วย `csc.exe` ของ Windows สำหรับสภาพแวดล้อม `Python 3.14.2`
 - **Tests ที่รันและผลการทดสอบ:**
-  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 19/19 tests (`OK`)
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 20/20 tests (`OK`)
   - `python3 scripts/build_exe.py --dry-run` -> `DRY_RUN` (`audit_passed: true`)
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`59 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
-  - ไม่มี พร้อม Commit และ Push ขึ้น `origin/main` ตามคำสั่งของผู้ใช้
+  - แก้ไขปัญหา `... was unexpected at this time.` บน Windows `cmd.exe` เรียบร้อยแล้ว พร้อม Commit และ Push ขึ้น `origin/main`

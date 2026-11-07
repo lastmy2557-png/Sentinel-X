@@ -19,12 +19,14 @@ from unittest.mock import patch
 
 from scripts.build_exe import (
     PROJECT_ROOT,
+    _create_embedded_payload_zip,
     build_pyinstaller_command,
     main as build_exe_main,
     run_build,
     write_build_integrity_artifacts,
 )
 from sentinel_x.__main__ import run_entrypoint
+from sentinel_x.detection.sigma import _fallback_parse_sigma_yaml
 
 
 class BuildExePipelineTests(unittest.TestCase):
@@ -123,6 +125,33 @@ class BuildExePipelineTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             run_build(project_root=compromised_root, dry_run=True)
 
+    def test_windows_batch_and_fallback_bundle_support(self) -> None:
+        # 1. Verify embedded zip bundle creation for Windows fallback compiler
+        zip_path = self.base_path / "payload.zip"
+        bundle_id = _create_embedded_payload_zip(PROJECT_ROOT, zip_path)
+        self.assertEqual(len(bundle_id), 16)
+        self.assertTrue(zip_path.is_file())
+
+        # 2. Verify pure-Python Sigma YAML fallback parser (for Python 3.14 without PyYAML wheel)
+        sigma_sample = (PROJECT_ROOT / "config" / "rules" / "sample_sigma_rule.yml").read_text(
+            encoding="utf-8"
+        )
+        parsed = _fallback_parse_sigma_yaml(sigma_sample)
+        self.assertEqual(parsed["id"], "SX-SIGMA-001")
+        self.assertIn("attack.t1505.003", parsed["tags"])
+
+        # 3. Verify scripts/build_windows.bat has no multi-line parenthesized blocks that break cmd.exe
+        bat_text = (PROJECT_ROOT / "scripts" / "build_windows.bat").read_text(encoding="utf-8")
+        for raw_line in bat_text.splitlines():
+            line = raw_line.strip()
+            if not line or line.upper().startswith("REM"):
+                continue
+            self.assertFalse(
+                line.endswith("("),
+                f"Found parenthesized block opener in build_windows.bat: {line}",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
+

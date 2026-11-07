@@ -40,11 +40,13 @@
 
 ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
 - เพิ่ม `sentinel_x/__main__.py` ให้รองรับการเปิด Local Dashboard อัตโนมัติเมื่อผู้ใช้ดับเบิลคลิก `sentinel-x.exe` บน Windows โดยไม่ใส่พารามิเตอร์
-- เพิ่ม `scripts/build_exe.py` ที่บังคับรัน `generate_security_audit_report` ก่อนสร้างไฟล์ `.exe` และคำนวณ SHA-256 Checksum หลัง Build เสร็จ
+- เพิ่ม `scripts/build_exe.py` ที่บังคับรัน `generate_security_audit_report` ก่อนสร้างไฟล์ `.exe` พร้อมระบบ Fallback คอมไพล์ `.exe` ด้วย `csc.exe` บน Windows สำหรับ Python 3.14+ และคำนวณ SHA-256 Checksum หลัง Build เสร็จ
+- ปรับปรุง `scripts/build_windows.bat` ให้ใช้โครงสร้าง `goto` แทนบล็อกวงเล็บ `(...)` เพื่อป้องกัน Error `... was unexpected at this time.` บน Windows `cmd.exe`
+- เพิ่มการค้นหา `openssl.exe` อัตโนมัติจาก Git for Windows ใน `manifest.py` และเพิ่ม Pure-Python Sigma YAML Parser Fallback ใน `sigma.py`
 
 ## 7. Tests ที่รันและผลลัพธ์จริง
 - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- ผลลัพธ์: `Ran 19 tests — OK`
+- ผลลัพธ์: `Ran 20 tests — OK`
 - คำสั่ง Dry-run Build: `python3 scripts/build_exe.py --dry-run` -> `"status": "DRY_RUN", "audit_passed": true`
 - คำสั่ง Anti-REA Audit: `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown`
 - ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 59`, `Total Findings: 0`)

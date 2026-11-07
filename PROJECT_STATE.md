@@ -50,4 +50,4 @@
 4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน PyInstaller Build ใน `scripts/build_exe.py` และสร้างไฟล์ SHA-256 Checksum (`sentinel-x.exe.sha256`) คู่กับ `build_manifest.json` หลังคอมไพล์ทุกครั้ง
 
 ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
-- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–8 (19/19 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
+- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–8 (20/20 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)

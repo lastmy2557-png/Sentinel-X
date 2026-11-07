@@ -9,9 +9,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-import yaml
+try:
+    import yaml  # type: ignore[import-untyped]
+except ImportError:
+    yaml = None  # type: ignore[assignment]
 
 from sentinel_x.core.exceptions import DetectionError, ValidationError
 from sentinel_x.core.models import DetectionRule, MitreReference, Severity
@@ -26,6 +29,90 @@ SIGMA_LEVEL_TO_SEVERITY: Dict[str, Severity] = {
 }
 
 MITRE_TAG_RE = re.compile(r"^attack\.(t\d{4}(?:\.\d{3})?)$", re.IGNORECASE)
+
+
+def _strip_yaml_scalar(raw: str) -> str:
+    val = raw.strip()
+    if len(val) >= 2 and val[0] == val[-1] and val[0] in ("'", '"'):
+        return val[1:-1]
+    return val
+
+
+def _fallback_parse_sigma_yaml(yaml_content: str) -> Dict[str, Any]:
+    """
+    Pure-Python safe parser for Sigma YAML rules when PyYAML is not installed
+    (e.g. on bleeding-edge Python 3.14 on Windows without C build tools).
+    Supports nested mappings and string lists used by Sigma rules.
+    """
+    root: Dict[str, Any] = {}
+    stack: List[tuple[int, Any]] = [(-1, root)]
+    lines = yaml_content.splitlines()
+
+    idx = 0
+    while idx < len(lines):
+        raw_line = lines[idx]
+        stripped = raw_line.strip()
+        idx += 1
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        indent = len(raw_line) - len(raw_line.lstrip(" "))
+        while len(stack) > 1 and indent <= stack[-1][0]:
+            stack.pop()
+
+        parent = stack[-1][1]
+        if stripped.startswith("- "):
+            item_val = _strip_yaml_scalar(stripped[2:])
+            if isinstance(parent, list):
+                parent.append(item_val)
+            else:
+                raise DetectionError(f"Invalid YAML list item placement: {stripped}")
+            continue
+
+        if ":" not in stripped:
+            raise DetectionError(f"Invalid YAML syntax in Sigma rule line: {stripped}")
+
+        key, _, rest = stripped.partition(":")
+        key = key.strip()
+        rest = rest.strip()
+
+        if not isinstance(parent, dict):
+            raise DetectionError(f"Invalid YAML mapping context for key '{key}'.")
+
+        if rest in (">", "|"):
+            block_lines: List[str] = []
+            while idx < len(lines):
+                next_raw = lines[idx]
+                next_str = next_raw.strip()
+                if not next_str:
+                    block_lines.append("")
+                    idx += 1
+                    continue
+                next_indent = len(next_raw) - len(next_raw.lstrip(" "))
+                if next_indent > indent:
+                    block_lines.append(next_str)
+                    idx += 1
+                else:
+                    break
+            joiner = " " if rest == ">" else "\n"
+            parent[key] = joiner.join(s for s in block_lines if s).strip()
+        elif rest:
+            parent[key] = _strip_yaml_scalar(rest)
+        else:
+            # Peek next non-empty line to decide whether child is list or dict
+            next_container: Any = {}
+            for lookahead in lines[idx:]:
+                la_str = lookahead.strip()
+                if not la_str or la_str.startswith("#"):
+                    continue
+                la_indent = len(lookahead) - len(lookahead.lstrip(" "))
+                if la_indent > indent and la_str.startswith("- "):
+                    next_container = []
+                break
+            parent[key] = next_container
+            stack.append((indent, next_container))
+
+    return root
 
 
 def _extract_mitre_from_tags(tags: List[str]) -> MitreReference:
@@ -46,13 +133,16 @@ def _extract_mitre_from_tags(tags: List[str]) -> MitreReference:
 
 def parse_sigma_yaml_to_rule(yaml_content: str) -> DetectionRule:
     """
-    Safely parse a Sigma-style YAML rule string (using yaml.safe_load)
+    Safely parse a Sigma-style YAML rule string (using yaml.safe_load or pure-Python fallback)
     into a Sentinel-X DetectionRule.
     """
-    try:
-        doc = yaml.safe_load(yaml_content)
-    except yaml.YAMLError as exc:
-        raise DetectionError(f"Invalid YAML syntax in Sigma rule: {exc}") from exc
+    if yaml is not None:
+        try:
+            doc = yaml.safe_load(yaml_content)
+        except Exception as exc:
+            raise DetectionError(f"Invalid YAML syntax in Sigma rule: {exc}") from exc
+    else:
+        doc = _fallback_parse_sigma_yaml(yaml_content)
 
     if not isinstance(doc, dict):
         raise DetectionError("Sigma YAML document must be a mapping/dictionary.")

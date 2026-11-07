@@ -26,6 +26,8 @@ DEFAULT_SCAN_EXCLUDED_DIRS: Set[str] = {
     ".mypy_cache",
     ".ruff_cache",
     "node_modules",
+    "build",
+    "dist",
 }
 
 SAFE_PLACEHOLDER_MARKERS = (

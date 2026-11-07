@@ -25,6 +25,8 @@ DEFAULT_EXCLUDED_DIRS: Set[str] = {
     ".ruff_cache",
     "node_modules",
     "logs",
+    "build",
+    "dist",
 }
 
 DEFAULT_EXCLUDED_PATTERNS: List[str] = [
