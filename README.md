@@ -18,12 +18,18 @@
 3. **Incident Management & Reporting (`sentinel_x/incidents/`, `sentinel_x/reporting/`):**
    - จัดการสถานะ Incident (`OPEN`, `INVESTIGATING`, `CONTAINED`, `RESOLVED`, `CLOSED`), ระดับความรุนแรง (`Severity`), บันทึก `Investigation Notes`, ผูก Events/Alerts และสร้าง `Incident Timeline` อัตโนมัติ
    - ส่งออกรายงานในรูปแบบ **JSON**, **Markdown**, และ **HTML** (พร้อมการทำ HTML Escaping ป้องกัน XSS)
-4. **Security Dashboard & External Integrations (`sentinel_x/dashboard/`, `sentinel_x/integrations/`):**
+4. **Security Dashboard & External API Settings UI (`sentinel_x/dashboard/`, `sentinel_x/integrations/`):**
    - แสดงข้อมูลจริงจากฐานข้อมูล SQLite ท้องถิ่น และแยกข้อมูลตัวอย่าง (`is_sample`) ออกจากข้อมูลจริงอย่างชัดเจน
-   - มาพร้อม Interface มาตรฐานสำหรับ SIEM, EDR, Threat Intelligence และ Webhook Notification ที่รายงานสถานะการตั้งค่า Credentials ตามจริง (`NOT_CONFIGURED` vs `CONFIGURED_READY`)
+   - มาพร้อมหน้า **ตั้งค่าการเชื่อมต่อ API ภายนอก (`http://127.0.0.1:8080/settings`)** และ REST API (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) สำหรับตั้งค่าและทดสอบการเชื่อมต่อกับบริการที่ลูกค้าใช้งานจริง ได้แก่:
+     1. **SIEM Platform Forwarder** (Splunk HEC, Elastic SIEM, Microsoft Sentinel, IBM QRadar)
+     2. **EDR Endpoint Controller** (CrowdStrike Falcon, Microsoft Defender for Endpoint, SentinelOne)
+     3. **Threat Intelligence Feed** (VirusTotal, AbuseIPDB, MISP, AlienVault OTX)
+     4. **Webhook / ChatOps Alert Notifier** (Slack, Microsoft Teams, Discord, PagerDuty)
+     5. **External Security Tool / SOAR** (TheHive, Cortex XSOAR, Jira Service Management)
+   - บันทึกการตั้งค่าลง SQLite (`connector_settings`) อย่างปลอดภัย พร้อม **Secret Masking** (ไม่เปิดเผย API Key ตัวเต็มกลับไปที่หน้าเว็บหรือ API Response)
 5. **Anti-REA / Release Protection (`sentinel_x/security/release_protection/`):**
    - โมดูลแยกอิสระสำหรับ **Tamper Detection**, **Release Integrity Verification**, **Build Hardening**, และ **Sensitive Artifact Exposure Reduction**
-   - สร้าง **SHA-256 File Inventory** และลงนาม/ตรวจสอบ **Signed Release Manifest** ด้วยลายเซ็นดิจิทัล **Ed25519** (ผ่าน OpenSSL 3.0 โดยใช้ External Key เท่านั้น)
+   - สร้าง **SHA-256 File Inventory** และลงนาม/ตรวจสอบ **Signed Release Manifest** ด้วยลายเซ็นดิจิทัลมาตรฐาน **RFC 8032 Ed25519 / RFC 8410 PEM** (รองรับทั้ง Pure-Python ในตัวและ OpenSSL 3.0 โดยใช้ External Key เท่านั้น)
    - สแกนหา Secrets, Sensitive Files, Debug Artifacts, Source Maps และการตั้งค่า Build ที่ไม่ปลอดภัย
 
 > **ข้อจำกัดด้านความปลอดภัยตามความเป็นจริง:**
@@ -38,7 +44,7 @@
 python3 -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-### 2. ทดสอบ Ingest ข้อมูลตัวอย่างและดูสรุปผล SOC
+### 2. ทดสอบ Ingest ข้อมูลตัวอย่าง, เปิด SOC Dashboard และหน้าตั้งค่า API (`/settings`)
 ```bash
 # Ingest ไฟล์ Log ตัวอย่าง (ระบุ --sample อย่างชัดเจน)
 python3 -m sentinel_x.cli ingest --file data/samples/sample_security.log --sample
@@ -49,7 +55,9 @@ python3 -m sentinel_x.cli summary
 # แสดงรายการ Alerts ที่ตรวจพบพร้อม MITRE ATT&CK
 python3 -m sentinel_x.cli alerts
 
-# เปิดใช้งาน Local-first Security Dashboard บน http://127.0.0.1:8080
+# เปิดใช้งาน Local-first Security Dashboard และหน้าตั้งค่า API ภายนอก
+# - SOC Dashboard:       http://127.0.0.1:8080/
+# - ตั้งค่า API ภายนอก:   http://127.0.0.1:8080/settings
 python3 -m sentinel_x.cli serve --host 127.0.0.1 --port 8080
 ```
 
@@ -83,6 +91,15 @@ scripts\build_windows.bat
 
 REM หรือตรวจสอบคำสั่ง Build แบบ Dry-run
 python scripts/build_exe.py --dry-run
+```
+
+### 5. การสร้าง Release Artifacts & GitHub Packages
+```bash
+# สร้างแพ็กเกจสำหรับแจกจ่าย (PEP 427 .whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt)
+python3 scripts/build_release_package.py --dist-dir dist
+
+# สร้าง Container Image สำหรับ GitHub Packages (ghcr.io/lastmy2557-png/sentinel-x)
+docker build -t ghcr.io/lastmy2557-png/sentinel-x:latest .
 ```
 
 ---

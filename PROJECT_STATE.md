@@ -14,12 +14,13 @@
   - `PHASE 6 — RELEASE PREPARATION` `[COMPLETED]`
   - `PHASE 7 — EXTENDED SOC CAPABILITIES` `[COMPLETED]`
   - `PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE)` `[COMPLETED]`
-- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–8
+  - `PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE` `[COMPLETED]`
+- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–9
 
 ## 3. Architecture ปัจจุบัน (Current Architecture)
 - **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first)
 - **ฐานข้อมูล:** SQLite (`sentinel_x/core/database.py`) พร้อม Parameterized Queries
-- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard`, `platform`, `cli`, `__main__`, `scripts/build_exe.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
+- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
 - ดูรายละเอียดทั้งหมดใน `ARCHITECTURE.md`
 
 ## 4. ฟีเจอร์ที่พัฒนาแล้ว (Implemented Features)
@@ -37,17 +38,19 @@
 - [x] Unified Platform Orchestrator (`sentinel_x/platform.py`) & Main CLI (`sentinel_x/cli.py`) พร้อม Integration Tests (`tests/test_integration.py`)
 - [x] เอกสารประกอบและการเตรียม Release (`README.md`, `docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`, `requirements.txt`, `pyproject.toml`)
 - [x] Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Detection Rule Importer (`sentinel_x/detection/sigma.py`, `tests/test_phase7_extensions.py`)
-- [x] ระบบคอมไพล์เป็นไฟล์ `.exe` แบบ Standalone บน Windows (`sentinel_x/__main__.py`, `scripts/build_exe.py`, `scripts/build_windows.bat`, `tests/test_build_exe.py` ผ่านครบ 19/19 tests ทั้งโปรเจกต์)
+- [x] ระบบคอมไพล์เป็นไฟล์ `.exe` แบบ Standalone บน Windows (`sentinel_x/__main__.py`, `scripts/build_exe.py`, `scripts/build_windows.bat`, `tests/test_build_exe.py`)
+- [x] หน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`, `/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมระบบสร้าง GitHub Release & GitHub Packages (`scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py` ผ่านครบ 22/22 tests)
 
 ## 5. ปัญหาที่ทราบและข้อจำกัด (Known Issues & Limitations)
-- Wrapper ของ `gh` CLI ในสภาพแวดล้อม VM มีข้อจำกัดเรื่อง `tar utime` บน `/opt` แต่สามารถใช้คำสั่ง `git` มาตรฐานผ่าน credential proxy ได้ปกติ
+- Wrapper ของ `gh` CLI ในสภาพแวดล้อม VM มีข้อจำกัดเรื่อง `tar utime` บน `/opt` แต่สามารถใช้คำสั่ง `git` และ GitHub REST API ผ่าน credential proxy ได้ปกติ
 - ระบบ Anti-REA มุ่งเน้นการทำ Tamper Detection, Release Integrity Verification, Signed Manifest และการลดการเปิดเผยข้อมูลอ่อนไหว (ไม่สามารถรับประกันการป้องกัน Reverse Engineering ได้ 100% ตามหลักความเป็นจริงทางวิศวกรรมความปลอดภัย)
 
 ## 6. การตัดสินใจสำคัญ (Key Decisions)
 1. ใช้ **Python 3.11+** และ **SQLite** เพื่อความเบา ติดตั้งง่าย และทำงานแบบ Local-first ได้ทันทีโดยไม่ต้องพึ่งพา External Database Server
-2. ใช้ **OpenSSL 3.0 Ed25519 Digital Signature** คู่กับ SHA-256 File Inventory ในระบบ Anti-REA เพื่อยืนยันความแท้จริงของผู้เผยแพร่โดยไม่ฝัง Private Key ในโค้ดและไม่ต้องพึ่งพาไลบรารีภายนอกที่อาจมีปัญหา Supply Chain
+2. ใช้ **Native RFC 8032 Ed25519 Digital Signature & RFC 8410 PEM** คู่กับ SHA-256 File Inventory ในระบบ Anti-REA เพื่อยืนยันความแท้จริงของผู้เผยแพร่โดยไม่ฝัง Private Key ในโค้ดและทำงานได้ทุก OS โดยไม่ต้องพึ่งพาไลบรารีภายนอก
 3. แยกข้อมูลจริง (Real Telemetry) ออกจากข้อมูลตัวอย่าง (Sample Data) อย่างชัดเจนในระดับฐานข้อมูลและ Dashboard
-4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน PyInstaller Build ใน `scripts/build_exe.py` และสร้างไฟล์ SHA-256 Checksum (`sentinel-x.exe.sha256`) คู่กับ `build_manifest.json` หลังคอมไพล์ทุกครั้ง
+4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน PyInstaller Build ใน `scripts/build_exe.py` และ `scripts/build_release_package.py`
+5. ซ่อนค่า API Key ทุกครั้งที่แสดงผลบนหน้า `/settings` หรือส่งกลับผ่าน API (`••••••••xxxx`) และบันทึกประวัติการแก้ไขลงใน `audit.log`
 
 ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
-- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–8 (20/20 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
+- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–9 (22/22 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)

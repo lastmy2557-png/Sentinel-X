@@ -51,7 +51,13 @@
   - [x] พัฒนา Standalone Entrypoint (`sentinel_x/__main__.py`) รองรับทั้งการรันผ่าน CLI และการดับเบิลคลิกเปิด Local Dashboard บน Windows
   - [x] พัฒนา `scripts/build_exe.py` (บังคับตรวจ Anti-REA Audit ก่อน Build, รัน PyInstaller แบบ `shell=False`, และสร้าง `sentinel-x.exe.sha256` + `build_manifest.json`)
   - [x] พัฒนา `scripts/build_windows.bat` สำหรับสร้าง `.exe` แบบคลิกเดียวบนเครื่อง Windows
-  - [x] พัฒนาชุดทดสอบ `tests/test_build_exe.py` (รันผ่านครบ 19/19 tests ทั้งโปรเจกต์)
+  - [x] พัฒนาชุดทดสอบ `tests/test_build_exe.py`
+- [x] **PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE**:
+  - [x] พัฒนาหน้าเว็บตั้งค่า API บริการภายนอก (`/settings`) สำหรับลูกค้า (SIEM, EDR, Threat Intelligence, Webhook Notification, External Security Tool / SOAR)
+  - [x] พัฒนา REST API สำหรับบันทึกและทดสอบการเชื่อมต่อจริง (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมจัดเก็บลง SQLite (`connector_settings`) และซ่อนค่า API Key (`••••••••xxxx`)
+  - [x] พัฒนา `scripts/build_release_package.py` สร้างไฟล์ `.whl`, `.tar.gz`, `-release-bundle.zip`, `release_manifest.json`, และ `SHA256SUMS.txt`
+  - [x] พัฒนา `Dockerfile` และ `.github/workflows/release-and-package.yml` สำหรับเผยแพร่ GitHub Release และ GitHub Packages (`ghcr.io`)
+  - [x] พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py` (รันผ่านครบ 22/22 tests ทั้งโปรเจกต์)
 
 ---
 
@@ -61,7 +67,7 @@
 ---
 
 ## 3. งานที่รอดำเนินการ (Pending Tasks)
-- ไม่มีงานค้างใน Phase 0–8
+- ไม่มีงานค้างใน Phase 0–9
 
 ---
 
@@ -83,6 +89,7 @@
 - [x] ทดสอบ Secret Scanner ตรวจจับ Token/Private Key จำลอง (`test_release_protection.py` & `test_integration.py`)
 - [x] ทดสอบ Real-time UDP Syslog Ingestion และ Sigma YAML MITRE Tag Validation (`test_phase7_extensions.py`)
 - [x] ทดสอบ Pre-build Anti-REA Security Audit บล็อกการสร้าง `.exe` ทันทีหากพบไฟล์ความลับรั่วไหลในโปรเจกต์ (`test_build_exe.py`)
+- [x] ทดสอบการซ่อนค่า API Key (Secret Masking), การป้องกัน URL อันตราย (`javascript:`) และการบันทึก Audit Log ในหน้าตั้งค่า API (`test_api_settings_and_release_pkg.py`)
 
 ---
 

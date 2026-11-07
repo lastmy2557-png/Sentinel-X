@@ -6,50 +6,48 @@
 ---
 
 ## 1. Phase ปัจจุบัน
-- เพิ่งเสร็จสิ้น: **PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE)** `[COMPLETED]`
-- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 19/19 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
+- เพิ่งเสร็จสิ้น: **PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE** `[COMPLETED]`
+- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 22/22 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
 
 ## 2. งานที่กำลังทำ
-- ไม่มีงานค้าง (Phase 0 – Phase 8 เสร็จสมบูรณ์ 100%)
+- ไม่มีงานค้าง (Phase 0 – Phase 9 เสร็จสมบูรณ์ 100%)
 
 ## 3. ขั้นตอนล่าสุดที่เสร็จแล้ว
-- พัฒนา `sentinel_x/__main__.py` เป็นจุดเข้าใช้งานหลักสำหรับ Standalone Executable (`sentinel-x.exe`)
-- พัฒนา `scripts/build_exe.py` สำหรับตรวจสอบความปลอดภัยด้วย Anti-REA ก่อนคอมไพล์ด้วย PyInstaller (`--onefile`, `shell=False`) พร้อมสร้าง `sentinel-x.exe.sha256` และ `build_manifest.json`
-- พัฒนา `scripts/build_windows.bat` สำหรับสั่ง Build `.exe` บนเครื่อง Windows แบบคลิกเดียว
-- พัฒนาชุดทดสอบ `tests/test_build_exe.py` และรันทดสอบผ่านครบ 19/19 tests ทั้งโปรเจกต์ พร้อมผ่าน Anti-REA Audit (`PASSED`, `59 files inventoried`, `0 findings`)
+- พัฒนาหน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`) และ REST API (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) ใน `sentinel_x/dashboard/server.py` และ `sentinel_x/integrations/connectors.py`
+- เพิ่มตาราง `connector_settings` ใน `sentinel_x/core/database.py` เพื่อให้การตั้งค่า API ของลูกค้าถูกบันทึกในฐานข้อมูล SQLite ท้องถิ่นและคงอยู่ข้ามการรีสตาร์ทโปรแกรม
+- พัฒนา `scripts/build_release_package.py`, `Dockerfile`, และ `.github/workflows/release-and-package.yml` สำหรับสร้างและเผยแพร่ GitHub Release และ GitHub Packages (`ghcr.io`)
+- พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py` รันผ่านครบ 22/22 tests ทั้งโปรเจกต์ พร้อมผ่าน Anti-REA Audit (`PASSED`, `63 files inventoried`, `0 findings`)
 
 ## 4. สถานะการ Implement
 - โครงสร้างเอกสารและไฟล์ตั้งค่าความปลอดภัยพื้นฐาน: **100% (เสร็จแล้ว)**
-- `sentinel_x/core/` (Foundation): **100% (เสร็จแล้วและทดสอบผ่าน)**
-- `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions): **100% (เสร็จแล้วและทดสอบผ่าน)**
+- `sentinel_x/core/` (Foundation + Connector Settings Persistence): **100% (เสร็จแล้วและทดสอบผ่าน)**
+- `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions + Phase 9 API Settings UI): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/security/release_protection/` (Anti-REA): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/platform.py` & `sentinel_x/cli.py` (Integration): **100% (เสร็จแล้วและทดสอบผ่าน)**
-- Release Preparation & Windows `.exe` Build Pipeline (`scripts/build_exe.py`, `scripts/build_windows.bat`): **100% (เสร็จแล้วและตรวจสอบผ่าน)**
+- Release Preparation, Windows `.exe` Build Pipeline, & GitHub Release / Packages Pipeline: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
 
 ## 5. ไฟล์ที่สร้างหรือแก้ไข
-- สร้างใหม่ใน Phase 8:
-  - `sentinel_x/__main__.py`
-  - `scripts/build_exe.py`
-  - `scripts/build_windows.bat`
-  - `tests/test_build_exe.py`
-- แก้ไขใน Phase 8:
-  - `.gitignore`
-  - `README.md`
-  - `docs/INSTALLATION.md`
+- สร้างใหม่ใน Phase 9:
+  - `scripts/build_release_package.py`
+  - `Dockerfile`
+  - `.github/workflows/release-and-package.yml`
+  - `tests/test_api_settings_and_release_pkg.py`
+- แก้ไขใน Phase 9:
+  - `sentinel_x/core/database.py`
+  - `sentinel_x/integrations/connectors.py`
+  - `sentinel_x/dashboard/server.py`
+  - `sentinel_x/platform.py`
   - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 
 ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
-- เพิ่ม `sentinel_x/__main__.py` ให้รองรับการเปิด Local Dashboard อัตโนมัติเมื่อผู้ใช้ดับเบิลคลิก `sentinel-x.exe` บน Windows โดยไม่ใส่พารามิเตอร์
-- เพิ่ม `scripts/build_exe.py` ที่บังคับรัน `generate_security_audit_report` ก่อนสร้างไฟล์ `.exe` พร้อมระบบ Fallback คอมไพล์ `.exe` ด้วย `csc.exe` บน Windows สำหรับ Python 3.14+ และคำนวณ SHA-256 Checksum หลัง Build เสร็จ
-- ปรับปรุง `scripts/build_windows.bat` ให้ใช้โครงสร้าง `goto` แทนบล็อกวงเล็บ `(...)` เพื่อป้องกัน Error `... was unexpected at this time.` บน Windows `cmd.exe`
-- พัฒนา **Native RFC 8032 Ed25519 & RFC 8410 PEM** ใน `manifest.py` (เข้ากันได้กับ OpenSSL 3.0 100% โดยไม่ต้องพึ่งพาไฟล์ `openssl.exe` ภายนอกบน Windows) และปรับปรุง `SyslogUDPReceiver`, `DatabaseManager`, `AuditLogger` ให้ทำงานบน Windows ได้อย่างเสถียร 100%
+- เพิ่มหน้า `/settings` สำหรับตั้งค่า API ของ SIEM, EDR, Threat Intelligence, Webhook Notification, และ External Security Tool / SOAR พร้อมการซ่อนค่า API Key (`••••••••xxxx`) และการทดสอบเชื่อมต่อจริง
+- เพิ่ม `scripts/build_release_package.py` สร้างไฟล์ `.whl`, `.tar.gz`, `-release-bundle.zip`, `release_manifest.json`, และ `SHA256SUMS.txt` พร้อม `.github/workflows/release-and-package.yml` และ `Dockerfile`
 
 ## 7. Tests ที่รันและผลลัพธ์จริง
 - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- ผลลัพธ์: `Ran 20 tests — OK`
-- คำสั่ง Dry-run Build: `python3 scripts/build_exe.py --dry-run` -> `"status": "DRY_RUN", "audit_passed": true`
+- ผลลัพธ์: `Ran 22 tests — OK`
 - คำสั่ง Anti-REA Audit: `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown`
-- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 59`, `Total Findings: 0`)
+- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 63`, `Total Findings: 0`)
 
 ## 8. Error และปัญหาที่ยังไม่แก้
 - ไม่มี Error ในโค้ดของโปรเจกต์
@@ -59,18 +57,16 @@
 
 ## 10. คำสั่งหรือขั้นตอนที่ต้องใช้ทำงานต่อ
 ```bash
-# ตรวจสอบสถานะ Git
-git -C /home/antigravity/lastmy2557-png/Sentinel-X status -uall
-# รันชุดทดสอบทั้งหมด (19 tests)
+# รันชุดทดสอบทั้งหมด (22 tests)
 python3 -m unittest discover -s tests -p "test_*.py" -v
-# ทดสอบ Dry-run สำหรับการสร้างไฟล์ .exe
-python3 scripts/build_exe.py --dry-run
+# สร้างแพ็กเกจสำหรับ GitHub Release (.whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt)
+python3 scripts/build_release_package.py
 # รัน Anti-REA Audit ตรวจสอบโปรเจกต์
 python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown
 ```
 
 ## 11. งานถัดไปที่ต้องทำอย่างชัดเจน
-1. ระบบทั้งหมดใน Phase 0–8 เสร็จสมบูรณ์และพร้อมใช้งานจริง สามารถสั่งรัน `scripts\build_windows.bat` บนเครื่อง Windows เพื่อสร้าง `dist\sentinel-x.exe` ได้ทันที
+1. ระบบทั้งหมดใน Phase 0–9 เสร็จสมบูรณ์และพร้อมใช้งานจริง ทั้งหน้า SOC Dashboard (`/`), หน้าตั้งค่า API บริการภายนอก (`/settings`), สคริปต์สร้าง `.exe` (`scripts\build_windows.bat`) และระบบ GitHub Release / Packages
 
 ## 12. การตัดสินใจทางเทคนิค
 - เลือกใช้ SQLite แบบ WAL mode ร่วมกับ Parameterized SQL เพื่อความปลอดภัยและประสิทธิภาพสูงสุดในการทำงานแบบ Local-first

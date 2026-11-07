@@ -1,5 +1,6 @@
 """
-Security Dashboard & Local-First REST API Server for Sentinel-X (Section 4.5).
+Security Dashboard, External API Integration Settings UI, & Local-First REST API Server
+for Sentinel-X (Section 4.5 & Phase 9).
 Displays real security telemetry from SQLite:
 - Security Events
 - Alerts & MITRE ATT&CK Mappings
@@ -7,27 +8,32 @@ Displays real security telemetry from SQLite:
 - Detection Statistics
 - Incident Status
 - Recent Activity
-- External Connector Status
+- External Connector Status & Customer API Settings Management (/settings)
 
-Explicitly distinguishes real telemetry vs sample data (`is_sample`) and escapes all HTML output.
+Explicitly distinguishes real telemetry vs sample data (`is_sample`), masks all secrets in
+API/UI responses, and escapes all HTML output to prevent XSS.
 """
 
 from __future__ import annotations
 
+import hmac
 import html
 import json
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, urlparse
 
 from sentinel_x.core.config import SentinelConfig
 from sentinel_x.core.database import DatabaseManager
+from sentinel_x.core.exceptions import SentinelXError, ValidationError
 from sentinel_x.integrations.connectors import IntegrationRegistry
+
+MAX_JSON_BODY_BYTES = 65536
 
 
 class DashboardService:
-    """Aggregates real platform telemetry for the Security Dashboard and REST API."""
+    """Aggregates real platform telemetry and manages External API Integration Settings for the UI/API."""
 
     def __init__(
         self,
@@ -35,7 +41,7 @@ class DashboardService:
         integrations: Optional[IntegrationRegistry] = None,
     ) -> None:
         self.db = db
-        self.integrations = integrations or IntegrationRegistry()
+        self.integrations = integrations or IntegrationRegistry(db=db)
 
     def get_dashboard_snapshot(
         self, include_samples: bool = True, recent_limit: int = 20
@@ -122,18 +128,21 @@ class DashboardService:
         ) or "<tr><td colspan='7'><em>No security events recorded in database.</em></td></tr>"
 
         connector_rows = "".join(
-            f"<li><strong>{esc(str(c['display_name']))}</strong>: "
+            f"<li><strong>{esc(str(c['display_name']))}</strong> ({esc(str(c.get('provider_name', '')))}): "
             f"<code>{esc(str(c['status']))}</code> — {esc(str(c['message']))}</li>"
             for c in snap["connectors"]
         )
 
         return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="utf-8">
 <title>Sentinel-X Security Operations Dashboard</title>
 <style>
 body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
+.topbar {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
+.nav a {{ color: #38bdf8; text-decoration: none; margin-left: 1rem; padding: 0.45rem 0.85rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; }}
+.nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
 .notice {{ padding: 0.75rem 1rem; border-radius: 6px; background: #1e293b; border-left: 4px solid #38bdf8; margin-bottom: 1.5rem; }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }}
 .card {{ background: #1e293b; padding: 1rem; border-radius: 6px; border: 1px solid #334155; }}
@@ -146,7 +155,13 @@ code {{ color: #38bdf8; }}
 </style>
 </head>
 <body>
-<h1>Sentinel-X — Security Operations Dashboard</h1>
+<div class="topbar">
+  <h1 style="margin:0;">Sentinel-X — Security Operations Dashboard</h1>
+  <div class="nav">
+    <a href="/" class="active">SOC Dashboard</a>
+    <a href="/settings">ตั้งค่า API บริการภายนอก (API Settings)</a>
+  </div>
+</div>
 <div class="notice"><strong>Telemetry Status:</strong> {esc(snap['data_origin_notice'])}</div>
 <div class="grid">
   <div class="card"><h3>Total Events</h3><div class="val">{stats['total_events']}</div></div>
@@ -171,8 +186,191 @@ code {{ color: #38bdf8; }}
   <thead><tr><th>Timestamp</th><th>Category</th><th>Severity</th><th>Source IP</th><th>Action</th><th>Message</th><th>Origin</th></tr></thead>
   <tbody>{event_rows}</tbody>
 </table>
-<h2>External Integration Connectors</h2>
+<h2>External Integration Connectors (<a href="/settings" style="color:#38bdf8;">ตั้งค่า API คลิกที่นี่</a>)</h2>
 <ul>{connector_rows}</ul>
+</body>
+</html>
+"""
+
+    def render_settings_html(self) -> str:
+        """Render an XSS-safe, interactive API & External Services Configuration page (/settings)."""
+        esc = html.escape
+        connectors = self.integrations.list_settings()
+
+        cards_html = []
+        for c in connectors:
+            cid = esc(str(c["connector_id"]))
+            status = str(c["status"])
+            badge_color = (
+                "#16a34a"
+                if status == "CONFIGURED_READY"
+                else ("#d97706" if status == "DISABLED" else "#64748b")
+            )
+            key_badge = (
+                f"ตั้งค่าแล้ว ({esc(str(c['api_key_masked']))})"
+                if c["api_key_configured"]
+                else "ยังไม่ได้ตั้งค่า (Not Configured)"
+            )
+            checked_attr = "checked" if c["enabled"] else ""
+            req_ep = " (จำเป็น / Required)" if c["requires_endpoint"] else " (ทางเลือก / Optional)"
+            req_key = " (จำเป็น / Required)" if c["requires_api_key"] else " (ทางเลือก / Optional)"
+
+            cards_html.append(
+                f"""
+<div class="conn-card" id="card-{cid}">
+  <div class="conn-header">
+    <div>
+      <h2>{esc(str(c['display_name']))}</h2>
+      <div class="desc">{esc(str(c['description_th']))}</div>
+      <div class="examples"><strong>บริการที่รองรับ:</strong> {esc(str(c['supported_examples']))}</div>
+    </div>
+    <span class="badge" id="badge-{cid}" style="background:{badge_color};">{esc(status)}</span>
+  </div>
+
+  <form onsubmit="return saveConnector(event, '{cid}')" autocomplete="off">
+    <div class="form-grid">
+      <div class="field">
+        <label for="provider-{cid}">ชื่อผู้ให้บริการ / ระบบที่ใช้งาน (Provider Name)</label>
+        <input type="text" id="provider-{cid}" value="{esc(str(c['provider_name']))}" placeholder="เช่น Splunk, CrowdStrike, VirusTotal, Slack">
+      </div>
+      <div class="field">
+        <label for="endpoint-{cid}">API Endpoint / Webhook URL{req_ep}</label>
+        <input type="url" id="endpoint-{cid}" value="{esc(str(c['endpoint_url']))}" placeholder="https://api.example.com/v1/ingest">
+      </div>
+      <div class="field">
+        <label for="apikey-{cid}">API Key / Secret Token{req_key} — <span class="key-state" id="keystate-{cid}">{key_badge}</span></label>
+        <input type="password" id="apikey-{cid}" value="" placeholder="เว้นว่างไว้หากใช้ค่าเดิม หรือกรอกใหม่เพื่ออัปเดต API Key">
+      </div>
+      <div class="field checkbox-row">
+        <label><input type="checkbox" id="enabled-{cid}" {checked_attr}> เปิดใช้งานการเชื่อมต่อนี้ (Enable Integration)</label>
+        <label style="margin-left:1.5rem;"><input type="checkbox" id="clear-{cid}"> ล้างค่า API Key เดิมที่บันทึกไว้ (Clear Saved Secret)</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="submit" class="btn-save">บันทึกการตั้งค่า (Save Settings)</button>
+      <button type="button" class="btn-test" onclick="testConnector('{cid}')">ทดสอบการเชื่อมต่อจริง (Test Connection)</button>
+    </div>
+    <div class="result-box" id="result-{cid}" style="display:none;"></div>
+  </form>
+</div>
+"""
+            )
+
+        joined_cards = "\n".join(cards_html)
+        return f"""<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
+<style>
+body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
+.topbar {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
+.nav a {{ color: #38bdf8; text-decoration: none; margin-left: 1rem; padding: 0.45rem 0.85rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; }}
+.nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
+.notice {{ padding: 0.85rem 1rem; border-radius: 6px; background: #1e293b; border-left: 4px solid #38bdf8; margin-bottom: 1.5rem; line-height: 1.5; }}
+.conn-card {{ background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem; }}
+.conn-header {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
+.conn-header h2 {{ margin: 0 0 0.35rem 0; font-size: 1.15rem; color: #f8fafc; }}
+.desc {{ color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.25rem; }}
+.examples {{ color: #94a3b8; font-size: 0.85rem; }}
+.badge {{ padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: bold; color: #ffffff; }}
+.form-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem; }}
+.field {{ display: flex; flex-direction: column; }}
+.field label {{ font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.35rem; font-weight: 600; }}
+.field input[type="text"], .field input[type="url"], .field input[type="password"] {{
+  padding: 0.55rem 0.75rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.9rem;
+}}
+.checkbox-row {{ flex-direction: row; align-items: center; grid-column: 1 / -1; padding-top: 0.25rem; }}
+.key-state {{ color: #38bdf8; font-family: monospace; }}
+.btn-row {{ display: flex; gap: 0.75rem; }}
+button {{ padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; }}
+.btn-save {{ background: #0284c7; color: #ffffff; }}
+.btn-save:hover {{ background: #0369a1; }}
+.btn-test {{ background: #334155; color: #f8fafc; border: 1px solid #475569; }}
+.btn-test:hover {{ background: #475569; }}
+.result-box {{ margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.9rem; background: #0f172a; border-left: 4px solid #38bdf8; }}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1 style="margin:0;">Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings)</h1>
+  <div class="nav">
+    <a href="/">SOC Dashboard</a>
+    <a href="/settings" class="active">ตั้งค่า API บริการภายนอก (API Settings)</a>
+  </div>
+</div>
+
+<div class="notice">
+  <strong>มาตรฐานความปลอดภัย (Security by Design):</strong>
+  ค่า API Key และ Secret Token ทุกตัวจะถูกบันทึกในฐานข้อมูลท้องถิ่น (Local-first SQLite) และจะถูก<strong>ปิดบังค่า (Masked เช่น ••••••••1234)</strong> เสมอเมื่อแสดงผลบนหน้าเว็บหรือส่งกลับผ่าน API เพื่อป้องกันการรั่วไหลของข้อมูลสำคัญ
+</div>
+
+{joined_cards}
+
+<script>
+function setResultBox(cid, text, isOk) {{
+  const box = document.getElementById('result-' + cid);
+  box.style.display = 'block';
+  box.style.borderLeftColor = isOk ? '#16a34a' : '#ef4444';
+  box.textContent = text;
+}}
+
+async function saveConnector(ev, cid) {{
+  ev.preventDefault();
+  const payload = {{
+    connector_id: cid,
+    provider_name: document.getElementById('provider-' + cid).value,
+    endpoint_url: document.getElementById('endpoint-' + cid).value,
+    api_key: document.getElementById('apikey-' + cid).value,
+    enabled: document.getElementById('enabled-' + cid).checked,
+    clear_secret: document.getElementById('clear-' + cid).checked
+  }};
+  try {{
+    const resp = await fetch('/api/v1/settings/connectors', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify(payload)
+    }});
+    const data = await resp.json();
+    if (!resp.ok) {{
+      setResultBox(cid, '[บันทึกไม่สำเร็จ] ' + (data.error || 'เกิดข้อผิดพลาด'), false);
+      return false;
+    }}
+    const s = data.connector;
+    document.getElementById('apikey-' + cid).value = '';
+    document.getElementById('clear-' + cid).checked = false;
+    document.getElementById('badge-' + cid).textContent = s.status;
+    document.getElementById('badge-' + cid).style.background =
+      s.status === 'CONFIGURED_READY' ? '#16a34a' : (s.status === 'DISABLED' ? '#d97706' : '#64748b');
+    document.getElementById('keystate-' + cid).textContent =
+      s.api_key_configured ? ('ตั้งค่าแล้ว (' + s.api_key_masked + ')') : 'ยังไม่ได้ตั้งค่า (Not Configured)';
+    setResultBox(cid, '[บันทึกสำเร็จ] สถานะปัจจุบัน: ' + s.status + ' — ' + s.message, true);
+  }} catch (err) {{
+    setResultBox(cid, '[ข้อผิดพลาดเครือข่าย] ' + err, false);
+  }}
+  return false;
+}}
+
+async function testConnector(cid) {{
+  setResultBox(cid, 'กำลังตรวจสอบการตั้งค่าและทดสอบการเชื่อมต่อ...', true);
+  try {{
+    const resp = await fetch('/api/v1/settings/connectors/test', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{ connector_id: cid }})
+    }});
+    const data = await resp.json();
+    if (!resp.ok) {{
+      setResultBox(cid, '[ทดสอบไม่สำเร็จ] ' + (data.error || 'เกิดข้อผิดพลาด'), false);
+      return;
+    }}
+    const r = data.result;
+    setResultBox(cid, '[' + r.status + '] ' + r.message, Boolean(r.success));
+  }} catch (err) {{
+    setResultBox(cid, '[ข้อผิดพลาดเครือข่าย] ' + err, false);
+  }}
+}}
+</script>
 </body>
 </html>
 """
@@ -182,7 +380,7 @@ def create_dashboard_http_server(
     dashboard_service: DashboardService,
     config: Optional[SentinelConfig] = None,
 ) -> HTTPServer:
-    """Create a local-first HTTP server exposing the Security Dashboard and JSON API."""
+    """Create a local-first HTTP server exposing the Security Dashboard, API Settings UI, and REST API."""
     cfg = config or SentinelConfig()
 
     class DashboardRequestHandler(BaseHTTPRequestHandler):
@@ -209,6 +407,38 @@ def create_dashboard_http_server(
             self.end_headers()
             self.wfile.write(body)
 
+        def _check_api_auth(self) -> bool:
+            """If SENTINEL_API_TOKEN is configured, enforce constant-time token verification on POST."""
+            if not cfg.api_token:
+                return True
+            auth_header = self.headers.get("Authorization", "")
+            token_header = self.headers.get("X-Sentinel-Token", "")
+            provided = ""
+            if auth_header.startswith("Bearer "):
+                provided = auth_header[7:].strip()
+            elif token_header:
+                provided = token_header.strip()
+            if not provided:
+                return False
+            return hmac.compare_digest(provided.encode("utf-8"), cfg.api_token.encode("utf-8"))
+
+        def _read_json_body(self) -> Dict[str, Any]:
+            length_str = self.headers.get("Content-Length", "0")
+            try:
+                length = int(length_str)
+            except ValueError as exc:
+                raise ValidationError("Invalid Content-Length header.") from exc
+            if length <= 0 or length > MAX_JSON_BODY_BYTES:
+                raise ValidationError(f"Request body must be between 1 and {MAX_JSON_BODY_BYTES} bytes.")
+            raw = self.rfile.read(length)
+            try:
+                data = json.loads(raw.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise ValidationError(f"Malformed JSON request body: {exc}") from exc
+            if not isinstance(data, dict):
+                raise ValidationError("JSON request body must be an object.")
+            return data
+
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             qs = parse_qs(parsed.query)
@@ -216,6 +446,8 @@ def create_dashboard_http_server(
 
             if parsed.path == "/":
                 self._send_html(dashboard_service.render_dashboard_html(include_samples=include_samples))
+            elif parsed.path == "/settings":
+                self._send_html(dashboard_service.render_settings_html())
             elif parsed.path == "/api/v1/summary":
                 self._send_json(dashboard_service.get_dashboard_snapshot(include_samples=include_samples))
             elif parsed.path == "/api/v1/events":
@@ -229,7 +461,40 @@ def create_dashboard_http_server(
                 self._send_json({"incidents": [i.to_dict() for i in incidents]})
             elif parsed.path == "/api/v1/connectors":
                 self._send_json({"connectors": dashboard_service.integrations.list_statuses()})
+            elif parsed.path == "/api/v1/settings/connectors":
+                self._send_json({"connectors": dashboard_service.integrations.list_settings()})
             else:
                 self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
 
-    return HTTPServer((cfg.host, cfg.port), DashboardRequestHandler)
+        def do_POST(self) -> None:
+            parsed = urlparse(self.path)
+            if not self._check_api_auth():
+                self._send_json(
+                    {"error": "Unauthorized: valid API token required."},
+                    status=HTTPStatus.UNAUTHORIZED,
+                )
+                return
+
+            try:
+                body = self._read_json_body()
+                if parsed.path == "/api/v1/settings/connectors":
+                    cid = str(body.get("connector_id", "")).strip()
+                    updated = dashboard_service.integrations.update_connector_settings(
+                        connector_id=cid,
+                        provider_name=str(body["provider_name"]) if "provider_name" in body else None,
+                        endpoint_url=str(body["endpoint_url"]) if "endpoint_url" in body else None,
+                        api_key=str(body["api_key"]) if "api_key" in body else None,
+                        enabled=bool(body["enabled"]) if "enabled" in body else None,
+                        clear_secret=bool(body.get("clear_secret", False)),
+                    )
+                    self._send_json({"status": "UPDATED", "connector": updated}, status=HTTPStatus.OK)
+                elif parsed.path == "/api/v1/settings/connectors/test":
+                    cid = str(body.get("connector_id", "")).strip()
+                    test_res = dashboard_service.integrations.test_connector_connection(connector_id=cid)
+                    self._send_json({"status": "TESTED", "result": test_res}, status=HTTPStatus.OK)
+                else:
+                    self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+            except SentinelXError as exc:
+                self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+
+    return ThreadingHTTPServer((cfg.host, cfg.port), DashboardRequestHandler)

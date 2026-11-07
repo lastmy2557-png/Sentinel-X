@@ -33,7 +33,11 @@ class SentinelXPlatform:
         self.config = config or SentinelConfig.from_env()
         self.db = DatabaseManager(self.config.db_path)
         self.audit = AuditLogger(self.config.audit_log_path)
-        self.integrations = IntegrationRegistry(self.config)
+        self.integrations = IntegrationRegistry(
+            self.config,
+            db=self.db,
+            audit_logger=self.audit,
+        )
         self.detection = ThreatDetectionEngine(
             db=self.db,
             audit_logger=self.audit,

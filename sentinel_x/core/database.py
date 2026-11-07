@@ -150,6 +150,15 @@ class DatabaseManager:
             metadata_json TEXT NOT NULL,
             FOREIGN KEY(incident_id) REFERENCES incidents(incident_id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS connector_settings (
+            connector_id TEXT PRIMARY KEY,
+            provider_name TEXT NOT NULL,
+            endpoint_url TEXT NOT NULL,
+            api_key TEXT NOT NULL,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT NOT NULL
+        );
         """
         with self.connection() as conn:
             conn.executescript(schema_sql)
@@ -622,3 +631,65 @@ class DatabaseManager:
             ],
             "includes_sample_data": include_samples and sample_events > 0,
         }
+
+    # ------------------------------------------------------------------
+    # External Connector Settings Persistence
+    # ------------------------------------------------------------------
+    def save_connector_setting(
+        self,
+        connector_id: str,
+        provider_name: str,
+        endpoint_url: str,
+        api_key: str,
+        enabled: bool,
+        updated_at: str,
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO connector_settings (
+                    connector_id, provider_name, endpoint_url, api_key, enabled, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    connector_id,
+                    provider_name,
+                    endpoint_url,
+                    api_key,
+                    1 if enabled else 0,
+                    updated_at,
+                ),
+            )
+
+    def get_connector_setting(self, connector_id: str) -> Optional[Dict[str, Any]]:
+        with self.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM connector_settings WHERE connector_id = ?",
+                (connector_id,),
+            ).fetchone()
+            if not row:
+                return None
+            return {
+                "connector_id": row["connector_id"],
+                "provider_name": row["provider_name"],
+                "endpoint_url": row["endpoint_url"],
+                "api_key": row["api_key"],
+                "enabled": bool(row["enabled"]),
+                "updated_at": row["updated_at"],
+            }
+
+    def list_connector_settings(self) -> Dict[str, Dict[str, Any]]:
+        with self.connection() as conn:
+            rows = conn.execute("SELECT * FROM connector_settings").fetchall()
+            return {
+                r["connector_id"]: {
+                    "connector_id": r["connector_id"],
+                    "provider_name": r["provider_name"],
+                    "endpoint_url": r["endpoint_url"],
+                    "api_key": r["api_key"],
+                    "enabled": bool(r["enabled"]),
+                    "updated_at": r["updated_at"],
+                }
+                for r in rows
+            }
+

@@ -157,3 +157,25 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`59 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
   - แก้ไขปัญหา `FAILED (failures=1, errors=2)` บน Windows เรียบร้อยแล้ว พร้อม Commit และ Push ขึ้น `origin/main`
+
+---
+
+## [2026-11-07] — PHASE 9 (EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนาหน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`) ใน `sentinel_x/dashboard/server.py` พร้อมแถบเมนูนำทางเชื่อมระหว่างหน้า `SOC Dashboard (/)` และหน้า `ตั้งค่า API บริการภายนอก (/settings)`
+  - พัฒนา REST API `GET/POST /api/v1/settings/connectors` และ `POST /api/v1/settings/connectors/test` รองรับการตั้งค่าบริการภายนอกทั้ง 5 หมวดหมู่ที่ลูกค้าใช้งานจริง (SIEM, EDR, Threat Intelligence, Webhook Notification, External Security Tool / SOAR)
+  - เพิ่มตาราง `connector_settings` ใน `sentinel_x/core/database.py` พร้อมการซ่อนค่า API Key (`••••••••xxxx`), การตรวจสอบความถูกต้องของ URL และการบันทึก Security Audit Log ทุกครั้งที่มีการแก้ไขหรือทดสอบการเชื่อมต่อ
+  - พัฒนา `scripts/build_release_package.py` สำหรับสร้างไฟล์แพ็กเกจมาตรฐาน PEP 427 Wheel (`.whl`), Source Tarball (`.tar.gz`), Release Bundle (`.zip`), `release_manifest.json`, และ `SHA256SUMS.txt`
+  - สร้าง `Dockerfile` (Non-root container สำหรับ GitHub Container Registry `ghcr.io`) และ `.github/workflows/release-and-package.yml` สำหรับทำ CI/CD สร้าง Windows `.exe`, เผยแพร่ GitHub Packages และสร้าง GitHub Release อัตโนมัติ
+  - พัฒนาและรันชุดทดสอบ `tests/test_api_settings_and_release_pkg.py`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py`
+  - แก้ไข: `sentinel_x/core/database.py`, `sentinel_x/integrations/connectors.py`, `sentinel_x/dashboard/server.py`, `sentinel_x/platform.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ห้ามส่งค่า API Key ดิบกลับไปยังหน้าเว็บหรือ API Response เด็ดขาด (ส่งกลับเฉพาะค่าที่ผ่าน `mask_secret_value` แล้วเท่านั้น) และหากผู้ใช้เว้นช่อง API Key ว่างขณะกดบันทึก ระบบจะคงค่า API Key เดิมที่บันทึกไว้ในฐานข้อมูลโดยไม่ต้องกรอกซ้ำ
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 22/22 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`63 files inventoried`, `0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อม Commit, Push, สร้าง Git Tag `v0.1.0` และเผยแพร่ GitHub Release `v0.1.0`
