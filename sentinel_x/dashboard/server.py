@@ -391,6 +391,7 @@ async function testConnector(cid) {{
 def create_dashboard_http_server(
     dashboard_service: DashboardService,
     config: Optional[SentinelConfig] = None,
+    allow_port_fallback: bool = True,
 ) -> HTTPServer:
     """Create a local-first HTTP server exposing the Security Dashboard, API Settings UI, and REST API."""
     cfg = config or SentinelConfig()
@@ -509,4 +510,31 @@ def create_dashboard_http_server(
             except SentinelXError as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
 
-    return ThreadingHTTPServer((cfg.host, cfg.port), DashboardRequestHandler)
+    try:
+        return ThreadingHTTPServer((cfg.host, cfg.port), DashboardRequestHandler)
+    except OSError as primary_exc:
+        if not allow_port_fallback or cfg.port <= 0:
+            raise
+        candidate_ports = [cfg.port + offset for offset in range(1, 11)] + [
+            8081,
+            8088,
+            8888,
+            9000,
+            9080,
+            9090,
+            5000,
+            0,
+        ]
+        seen = {cfg.port}
+        for candidate in candidate_ports:
+            if candidate in seen or candidate < 0 or candidate > 65535:
+                continue
+            seen.add(candidate)
+            try:
+                srv = ThreadingHTTPServer((cfg.host, candidate), DashboardRequestHandler)
+                cfg.port = int(srv.server_address[1])
+                return srv
+            except OSError:
+                continue
+        raise primary_exc
+

@@ -1,18 +1,28 @@
 {
   "schema": "sentinel_x.patch_manifest.v1",
-  "latest_version": "0.1.6",
-  "latest_tag": "v0.1.6",
+  "latest_version": "0.1.7",
+  "latest_tag": "v0.1.7",
   "latest_patch": {
-    "from_version": "0.1.5",
-    "to_version": "0.1.6",
-    "tag": "v0.1.6",
-    "patch_file": "patches/v0.1.6.patch",
-    "patch_sha256": "c24c2d64391673a4f4d01dcf0c416a4c8abbd9b391177a79a2f8c1ef49f0af03",
-    "patch_size_bytes": 14930,
-    "summary": "Fix GitHub Actions CI/CD test suite and release workflow with portable PE32+ stub fallback",
-    "generated_at": "2026-11-07T16:23:33.295827+00:00"
+    "from_version": "0.1.6",
+    "to_version": "0.1.7",
+    "tag": "v0.1.7",
+    "patch_file": "patches/v0.1.7.patch",
+    "patch_sha256": "16be4bf99a02536e27404a83f65f796a7733c5647611c58aaa4a2e3d6b766d49",
+    "patch_size_bytes": 31716,
+    "summary": "Add automatic port fallback on WinError 10013/10048 and remove 'all' tab from official website",
+    "generated_at": "2026-11-07T19:40:28.085948+00:00"
   },
   "history": [
+    {
+      "from_version": "0.1.6",
+      "to_version": "0.1.7",
+      "tag": "v0.1.7",
+      "patch_file": "patches/v0.1.7.patch",
+      "patch_sha256": "16be4bf99a02536e27404a83f65f796a7733c5647611c58aaa4a2e3d6b766d49",
+      "patch_size_bytes": 31716,
+      "summary": "Add automatic port fallback on WinError 10013/10048 and remove 'all' tab from official website",
+      "generated_at": "2026-11-07T19:40:28.085948+00:00"
+    },
     {
       "from_version": "0.1.5",
       "to_version": "0.1.6",

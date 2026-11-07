@@ -1,0 +1,595 @@
+# Sentinel-X Official Patch File
+# From Version : v0.1.6
+# To Version   : v0.1.7
+# Summary      : Add automatic port fallback on WinError 10013/10048 and remove 'all' tab from official website
+# Generated At : 2026-11-07T19:40:28.085428+00:00
+# Apply Command: git apply patches/v0.1.7.patch
+
+diff --git a/.github/workflows/release-and-package.yml b/.github/workflows/release-and-package.yml
+index e646a3e..f165a89 100644
+--- a/.github/workflows/release-and-package.yml
++++ b/.github/workflows/release-and-package.yml
+@@ -2,14 +2,19 @@ name: Sentinel-X Release & GitHub Packages
+ 
+ on:
+   push:
++    branches:
++      - main
+     tags:
+       - "v*"
+   workflow_dispatch:
+     inputs:
+       release_tag:
+-        description: "Release tag to build and publish (e.g. v0.1.0)"
++        description: "Release tag to build and publish (e.g. v0.1.6)"
+         required: false
+-        default: "v0.1.0"
++        default: "v0.1.6"
++
++env:
++  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+ 
+ permissions:
+   contents: write
+@@ -46,7 +51,6 @@ jobs:
+             dist/*.tar.gz
+             dist/*.zip
+             dist/release_manifest.json
+-            dist/SHA256SUMS.txt
+ 
+   build-windows-exe:
+     name: Build Windows Standalone Executable (.exe)
+@@ -94,7 +98,7 @@ jobs:
+       - name: Build and Push Docker Package to ghcr.io
+         run: |
+           IMAGE_REPO="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+-          TAG_NAME="${GITHUB_REF_NAME:-v0.1.0}"
++          TAG_NAME="${GITHUB_REF_NAME:-latest}"
+           docker build -t "${IMAGE_REPO}:${TAG_NAME}" -t "${IMAGE_REPO}:latest" .
+           docker push "${IMAGE_REPO}:${TAG_NAME}"
+           docker push "${IMAGE_REPO}:latest"
+@@ -122,6 +126,7 @@ jobs:
+       - name: Generate Combined SHA256SUMS.txt
+         run: |
+           cd release_assets
++          rm -f SHA256SUMS.txt
+           sha256sum * > SHA256SUMS.txt
+ 
+       - name: Publish Release on GitHub
+@@ -132,3 +137,4 @@ jobs:
+           generate_release_notes: true
+           files: |
+             release_assets/*
++
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 38dad67..7e0a364 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -153,6 +153,7 @@ sentinel-x/
+ - **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE:** พัฒนา `scripts/release_patch.py` และ `scripts/apply_patch_windows.bat` พร้อมคอมไพล์ `dist/sentinel-x.exe` เป็น Native 64-bit Windows PE32+ Console Executable `[COMPLETED]`
+ - **PHASE 11 & 12 — FULL INTERACTIVE MULTI-TAB OFFICIAL WEBSITE & WEB CONSOLE ON VERCEL:** พัฒนาหน้าเว็บ `public/` และ `vercel.json` สำหรับ `https://sentinel-x-weld-tau.vercel.app/` ให้สามารถสลับและใช้งานได้จริงครบทุกแท็บ (`SOC Dashboard & เคส`, `ทดลองตรวจจับ & Sigma Studio`, `สถาปัตยกรรม SOC`, `ตั้งค่า API บริการภายนอก (/settings)`, `Anti-REA Release Protection Studio`, `ดาวน์โหลด & ตรวจสอบ SHA-256 / Patch Viewer`) `[COMPLETED]`
+ - **PHASE 13 — SENTINELX.APP TECHNICAL-MANUAL LAYOUT REDESIGN (`v0.1.4`):** ปรับโฉม Layout และโครงสร้างของหน้าเว็บ Official (`public/index.html`, `public/styles.css`, `public/app.js`) ให้มีสไตล์เหมือน `https://sentinelx.app/` (Minimalist Dark `#090c10` / `#0d1117`, เส้นขอบ `1px solid #26303f`, แถบนำทาง Monospace พิมพ์เล็ก, Split 2-Box Hero `install` คู่กับ `or connect first`, แผนผัง `link map` 3 โหนด, ตาราง `audit_events`, แถบป้าย `Any security stack, one hub` + 4 Trust Cards, และหมวดหมู่คู่มือเรียงลำดับหมายเลข `01` – `05` + `Ref` แบบ 2 คอลัมน์) โดยยังคงใช้งานทุกแท็บและเครื่องมือแบบ Interactive ได้ครบ 100% `[COMPLETED]`
+-- **PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES & PUBLIC GITHUB REPOSITORY (`v0.1.5`):** แยกไฟล์ `TODO.md` และ `PROCESS.md` เป็นไฟล์แบบ Private (เก็บเฉพาะในเครื่องและโฟลเดอร์ `.private/` โดยไม่อัปโหลดขึ้น Git หรือรวมใน Release Bundle) พร้อมปรับสถานะ GitHub Repository `lastmy2557-png/Sentinel-X` เป็น **Public** `[COMPLETED]`
++- **PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES, PUBLIC GITHUB REPOSITORY & CI/CD FIX (`v0.1.5` – `v0.1.6`):** แยกไฟล์ `TODO.md` และ `PROCESS.md` เป็นไฟล์แบบ Private (เก็บเฉพาะในเครื่องและโฟลเดอร์ `.private/` โดยไม่อัปโหลดขึ้น Git หรือรวมใน Release Bundle), ปรับสถานะ GitHub Repository `lastmy2557-png/Sentinel-X` เป็น **Public**, และเพิ่ม Pre-compiled PE32+ Stub Fallback ใน `scripts/build_exe.py` พร้อมปรับปรุง `.github/workflows/release-and-package.yml` ให้ GitHub Actions CI/CD ทำงานผ่านครบทุก Job `[COMPLETED]`
++
+ 
+ 
+diff --git a/DEVELOPMENT_LOG.md b/DEVELOPMENT_LOG.md
+index 66c49b4..e6c2dec 100644
+--- a/DEVELOPMENT_LOG.md
++++ b/DEVELOPMENT_LOG.md
+@@ -290,7 +290,9 @@
+ - **Tests ที่รันและผลการทดสอบ:**
+   - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
+   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+-- **ปัญหาที่พบ:**
+-  - ไม่มี พร้อมออก Patch `v0.1.5`, คอมไพล์ `dist/sentinel-x.exe` ใหม่, Push ขึ้น GitHub และเปิด Repository เป็น Public
++- **ปัญหาที่พบและการแก้ไข (`v0.1.6`):**
++  - บน GitHub Actions Runner (`ubuntu-latest`) ไม่มีคำสั่ง `llvm-dlltool` และ `lld-link` ติดตั้งไว้เป็นค่าเริ่มต้น ทำให้ `test_patch_generator_and_windows_pe_zipapp_compiler` ใน Job `Automated Tests & Anti-REA Audit` ล้มเหลว
++  - แก้ไขโดยเพิ่ม Pre-compiled 64-bit PE32+ Console Stub Fallback ใน `build_windows_pe_zipapp_exe()` (`scripts/build_exe.py`) เมื่อเครื่องไม่มี `llvm-dlltool`/`lld-link` และปรับปรุง `.github/workflows/release-and-package.yml` ให้ทำงานผ่านครบทุก Job ใน `v0.1.6`
++
+ 
+ 
+diff --git a/PROJECT_STATE.md b/PROJECT_STATE.md
+index f46ceaf..54a92fe 100644
+--- a/PROJECT_STATE.md
++++ b/PROJECT_STATE.md
+@@ -19,9 +19,10 @@
+   - `PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT` `[COMPLETED]`
+   - `PHASE 12 — FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL` `[COMPLETED]`
+   - `PHASE 13 — SENTINELX.APP TECHNICAL-MANUAL LAYOUT REDESIGN (v0.1.4)` `[COMPLETED]`
+-  - `PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES & PUBLIC GITHUB REPOSITORY (v0.1.5)` `[COMPLETED]`
++  - `PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES, PUBLIC GITHUB REPOSITORY & CI/CD FIX (v0.1.5 – v0.1.6)` `[COMPLETED]`
+ - **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–14
+ 
++
+ ## 3. Architecture ปัจจุบัน (Current Architecture)
+ - **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first) + `sentinelx.app`-Style Interactive Technical Manual & Multi-Tab Web Console (`public/` & `vercel.json` บน `https://sentinel-x-weld-tau.vercel.app/`)
+ - **ฐานข้อมูล:** SQLite (`sentinel_x/core/database.py`) พร้อม Parameterized Queries
+diff --git a/public/app.js b/public/app.js
+index 344ead3..ec928da 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -75,7 +75,6 @@
+      1. Main Navigation Tab Switcher
+      ------------------------------------------------------------------------ */
+   const TAB_TITLES = {
+-    all: "แสดงครบทุกแท็บ (Interactive Full Console) — ใช้งานทุกฟีเจอร์ได้ในหน้าเดียวหรือเลือกสลับแท็บด้านบน",
+     overview: "แท็บ: ภาพรวมแพลตฟอร์ม & Quick-Start Terminal",
+     dashboard: "แท็บ: ศูนย์ปฏิบัติการ SOC Dashboard, การนำเข้า Log & บริหารจัดการเคส Incident",
+     simulator: "แท็บ: ทดลองตรวจจับภัยคุกคาม (Live Simulator), Sigma YAML Studio & MITRE ATT&CK",
+@@ -86,8 +85,8 @@
+   };
+ 
+   function activateMainTab(targetKey, shouldScroll) {
+-    const validTargets = ["all", "overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"];
+-    const key = validTargets.indexOf(targetKey) !== -1 ? targetKey : "all";
++    const validTargets = ["overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"];
++    const key = validTargets.indexOf(targetKey) !== -1 ? targetKey : "overview";
+ 
+     const navBtns = document.querySelectorAll(".nav-links [data-tab-target], .footer-links [data-tab-target]");
+     navBtns.forEach(function (btn) {
+@@ -99,21 +98,14 @@
+     });
+ 
+     const panels = document.querySelectorAll(".tab-panel");
+-    if (key === "all") {
+-      document.body.classList.add("show-all-tabs");
+-      panels.forEach(function (p) {
++    document.body.classList.remove("show-all-tabs");
++    panels.forEach(function (p) {
++      if (p.getAttribute("data-tab-panel") === key) {
+         p.classList.add("active");
+-      });
+-    } else {
+-      document.body.classList.remove("show-all-tabs");
+-      panels.forEach(function (p) {
+-        if (p.getAttribute("data-tab-panel") === key) {
+-          p.classList.add("active");
+-        } else {
+-          p.classList.remove("active");
+-        }
+-      });
+-    }
++      } else {
++        p.classList.remove("active");
++      }
++    });
+ 
+     const indicator = document.getElementById("active-tab-indicator");
+     if (indicator && TAB_TITLES[key]) {
+@@ -121,7 +113,7 @@
+     }
+ 
+     if (window.history && window.history.replaceState) {
+-      const hashUrl = key === "all" ? window.location.pathname : "#" + key;
++      const hashUrl = key === "overview" ? window.location.pathname : "#" + key;
+       window.history.replaceState(null, "", hashUrl);
+     }
+ 
+@@ -155,7 +147,7 @@
+     } else if (hash === "capabilities") {
+       activateMainTab("capabilities", false);
+     } else {
+-      activateMainTab("all", false);
++      activateMainTab("overview", false);
+     }
+   }
+ 
+diff --git a/public/index.html b/public/index.html
+index 82a2d29..1610d65 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -13,21 +13,20 @@
+   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="/styles.css">
+ </head>
+-<body class="show-all-tabs">
++<body>
+   <a href="#manual-start" class="skip-link">Skip to the manual</a>
+ 
+   <!-- Top Navigation Bar (sentinelx.app style) -->
+   <header class="site-header" id="site-header">
+     <div class="container nav-bar">
+-      <a href="#overview" class="brand-link" data-tab-target="all" id="nav-brand-link">
++      <a href="#overview" class="brand-link" data-tab-target="overview" id="nav-brand-link">
+         <span class="brand-dot"></span>
+         <span>SentinelX</span>
+-        <span class="version-tag" data-live-version>v0.1.5</span>
++        <span class="version-tag" data-live-version>v0.1.6</span>
+       </a>
+ 
+       <nav class="nav-links" aria-label="Primary manual &amp; console navigation" role="tablist">
+-        <button type="button" class="nav-tab-btn active" data-tab-target="all" id="nav-tab-all">all</button>
+-        <button type="button" class="nav-tab-btn" data-tab-target="overview" id="nav-tab-overview">install</button>
++        <button type="button" class="nav-tab-btn active" data-tab-target="overview" id="nav-tab-overview">install</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="dashboard" id="nav-tab-dashboard">operate (soc)</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="simulator" id="nav-tab-simulator">detect &amp; sigma</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="integrations" id="nav-tab-integrations">connect (/settings)</button>
+@@ -89,12 +88,12 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+                     Copy install command
+                   </button>
+                   <div style="display:flex; gap:0.85rem; align-items:center;">
+-                    <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="text-link">Download sentinel-x.exe (<span data-live-version>v0.1.5</span>)</a>
++                    <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="text-link">Download sentinel-x.exe (<span data-live-version>v0.1.6</span>)</a>
+                     <a href="/downloads/latest.patch" download="latest.patch" class="text-link">Read latest.patch</a>
+                   </div>
+                 </div>
+                 <div style="margin-top:0.65rem; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); display:flex; flex-wrap:wrap; justify-content:space-between; gap:0.4rem;">
+-                  <span>SHA-256 (<code id="live-exe-sha256">fedcb8c3f349646d922ed6137d6521e193afb0ccaebe1206b10c535042b6ba95</code>)</span>
++                  <span>SHA-256 (<code id="live-exe-sha256">328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802</code>)</span>
+                   <button type="button" class="text-link" style="background:none;border:none;padding:0;font-size:0.72rem;" id="btn-copy-exe-hash">copy sha256</button>
+                 </div>
+               </div>
+@@ -784,7 +783,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+         <div class="container">
+           <div class="manual-heading-row">
+             <span class="step-num">Ref</span>
+-            <h2 class="manual-title">Reference, Standalone .EXE &amp; Automated Patch Center (<span data-live-version>v0.1.5</span>)</h2>
++            <h2 class="manual-title">Reference, Standalone .EXE &amp; Automated Patch Center (<span data-live-version>v0.1.6</span>)</h2>
+           </div>
+           <p class="manual-lead">
+             ดาวน์โหลดไบนารี <code>sentinel-x.exe</code> ที่คอมไพล์เสร็จแล้ว, ไฟล์ <code>latest.patch</code>, ตรวจสอบค่า SHA-256 บนเบราว์เซอร์ และดูประวัติการอัปเดตทั้งหมด
+@@ -795,7 +794,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+               <div>
+                 <h3>sentinel-x.exe (Windows x64)</h3>
+                 <p class="showcase-desc">Native 64-bit PE32+ standalone console executable พร้อมรันทันทีทั้งโหมดเปิดเว็บ Dashboard และ CLI</p>
+-                <div class="hash-box" id="release-exe-sha256">SHA-256: fedcb8c3f349646d922ed6137d6521e193afb0ccaebe1206b10c535042b6ba95</div>
++                <div class="hash-box" id="release-exe-sha256">SHA-256: 328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802</div>
+               </div>
+               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                 <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="btn btn-primary btn-sm" id="card-btn-download-exe">Download sentinel-x.exe</a>
+@@ -807,7 +806,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+               <div>
+                 <h3>patches/latest.patch</h3>
+                 <p class="showcase-desc">Unified git diff patch สำหรับอัปเดตผ่าน <code>scripts\apply_patch_windows.bat</code> หรือ <code>git apply</code></p>
+-                <div class="hash-box" id="release-patch-sha256">SHA-256: ae297957ded1b0c57d1dc79872841092d95339bb61df32af8a20a1652c96369a</div>
++                <div class="hash-box" id="release-patch-sha256">SHA-256: c24c2d64391673a4f4d01dcf0c416a4c8abbd9b391177a79a2f8c1ef49f0af03</div>
+               </div>
+               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                 <a href="/downloads/latest.patch" download="latest.patch" class="btn btn-sm" id="card-btn-download-patch">Download latest.patch</a>
+@@ -884,10 +883,9 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+   <footer class="site-footer">
+     <div class="container footer-inner">
+       <div>
+-        <strong>Sentinel-X</strong> (<span data-live-version>v0.1.5</span>) · Local-first SOC, MITRE ATT&amp;CK &amp; Anti-REA Platform
++        <strong>Sentinel-X</strong> (<span data-live-version>v0.1.6</span>) · Local-first SOC, MITRE ATT&amp;CK &amp; Anti-REA Platform
+       </div>
+       <div class="footer-links">
+-        <button type="button" class="nav-tab-btn" data-tab-target="all">all</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="overview">install</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="dashboard">dashboard</button>
+         <button type="button" class="nav-tab-btn" data-tab-target="simulator">detect</button>
+diff --git a/public/version.json b/public/version.json
+index a7ad815..82aab4e 100644
+--- a/public/version.json
++++ b/public/version.json
+@@ -1,14 +1,14 @@
+ {
+   "platform": "Sentinel-X Cybersecurity & SOC Platform",
+-  "version": "0.1.5",
+-  "tag": "v0.1.5",
++  "version": "0.1.6",
++  "tag": "v0.1.6",
+   "exe_name": "sentinel-x.exe",
+   "exe_size_bytes": 73852,
+-  "exe_sha256": "fedcb8c3f349646d922ed6137d6521e193afb0ccaebe1206b10c535042b6ba95",
+-  "patch_file": "patches/v0.1.5.patch",
+-  "patch_sha256": "ae297957ded1b0c57d1dc79872841092d95339bb61df32af8a20a1652c96369a",
++  "exe_sha256": "328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802",
++  "patch_file": "patches/v0.1.6.patch",
++  "patch_sha256": "c24c2d64391673a4f4d01dcf0c416a4c8abbd9b391177a79a2f8c1ef49f0af03",
+   "github_repo": "https://github.com/lastmy2557-png/Sentinel-X",
+-  "github_release_url": "https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v0.1.5",
++  "github_release_url": "https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v0.1.6",
+   "ghcr_image": "ghcr.io/lastmy2557-png/sentinel-x:latest",
+-  "updated_at": "2026-11-07T16:05:23.646441+00:00"
++  "updated_at": "2026-11-07T16:23:33.656891+00:00"
+ }
+diff --git a/pyproject.toml b/pyproject.toml
+index eddc7af..c041b96 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "sentinel-x"
+-version = "0.1.5"
++version = "0.1.7"
+ description = "Local-first Cybersecurity, SOC, Threat Detection, Incident Response, and Release Protection (Anti-REA) Platform"
+ readme = "README.md"
+ requires-python = ">=3.11"
+diff --git a/scripts/build_exe.py b/scripts/build_exe.py
+index edfb713..9590ce1 100644
+--- a/scripts/build_exe.py
++++ b/scripts/build_exe.py
+@@ -13,17 +13,21 @@ Security guarantees:
+ from __future__ import annotations
+ 
+ import argparse
++import base64
+ import hashlib
+ import json
+ import os
+ import platform as py_platform
++import shutil
+ import subprocess
+ import sys
+ import zipfile
++import zlib
+ from datetime import datetime, timezone
+ from pathlib import Path
+ from typing import Any, Dict, List, Optional
+ 
++
+ # Ensure project root is on sys.path when running python scripts/build_exe.py
+ PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ if str(PROJECT_ROOT) not in sys.path:
+@@ -255,50 +259,91 @@ void mainCRTStartup(void) {
+ """
+     c_file.write_text(c_code.strip() + "\n", encoding="utf-8")
+ 
+-    subprocess.run(
+-        ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
+-        check=True,
+-        capture_output=True,
+-        text=True,
+-        shell=False,
+-    )
+-    subprocess.run(
+-        [
+-            "clang",
+-            "--target=x86_64-pc-windows-msvc",
+-            "-Os",
+-            "-fno-stack-protector",
+-            "-mno-stack-arg-probe",
+-            "-c",
+-            str(c_file),
+-            "-o",
+-            str(obj_file),
+-        ],
+-        check=True,
+-        capture_output=True,
+-        text=True,
+-        shell=False,
+-    )
+-    subprocess.run(
+-        [
+-            "lld-link",
+-            "/subsystem:console",
+-            "/entry:mainCRTStartup",
+-            "/nodefaultlib",
+-            str(obj_file),
+-            str(lib_file),
+-            f"/out:{stub_exe}",
+-        ],
+-        check=True,
+-        capture_output=True,
+-        text=True,
+-        shell=False,
++    has_llvm_cross = (
++        shutil.which("llvm-dlltool") is not None
++        and shutil.which("clang") is not None
++        and shutil.which("lld-link") is not None
+     )
++    stub_bytes: Optional[bytes] = None
++    if has_llvm_cross:
++        try:
++            subprocess.run(
++                ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
++                check=True,
++                capture_output=True,
++                text=True,
++                shell=False,
++            )
++            subprocess.run(
++                [
++                    "clang",
++                    "--target=x86_64-pc-windows-msvc",
++                    "-Os",
++                    "-fno-stack-protector",
++                    "-mno-stack-arg-probe",
++                    "-c",
++                    str(c_file),
++                    "-o",
++                    str(obj_file),
++                ],
++                check=True,
++                capture_output=True,
++                text=True,
++                shell=False,
++            )
++            subprocess.run(
++                [
++                    "lld-link",
++                    "/subsystem:console",
++                    "/entry:mainCRTStartup",
++                    "/nodefaultlib",
++                    str(obj_file),
++                    str(lib_file),
++                    f"/out:{stub_exe}",
++                ],
++                check=True,
++                capture_output=True,
++                text=True,
++                shell=False,
++            )
++            if stub_exe.is_file():
++                stub_bytes = stub_exe.read_bytes()
++        except Exception:
++            stub_bytes = None
++
++    if stub_bytes is None:
++        # Deterministic pre-compiled 64-bit Windows PE32+ console stub (compiled from pe_launcher.c above)
++        prebuilt_zlib_b64 = (
++            "eNrtVl9oW2UUPzfNsv5JeutswAluScmGZTS0WxEGjfa2yfYpN7bStCldtyVLbtbMNAnpjXazymKM"
++            "cJmBPe7Bh+HexQchaRG8WWW1YLXtgysMdLghrNVa9tRM6PV8996sLR3zQR9k9sC9557z/b7znXN+"
++            "93738w6NAwMARtgunfD3Mo5X/cGpeviyZs5eZPg5u28kOmZLphLnU8FRWygYjydE2znBlkrHbdG4"
++            "zd3TZxtNhAWnA6DXAxD+2AhzPX9cqMRbgyaoM9QDmLYk1KBfmBJTsQ0ahEpFQ4B5PKcKApnKpIra"
++            "aW97hFYbwMtbi+tlwAz/XK7Znt5LpyiMi6jtRj0h004yMETAmQoHxSDAZUZz0B5A7Q7OOp0aDDEI"
++            "bH3ymoiTnUkNaNZrVeOZd8aDXXmmhfNzA1w/5xvw95HMb2vomXE7hulLxvpltvkjx2X6iPqqrq/r"
++            "+gtdy7qeR912h0ifOu6qHrcjQKRhR3JGCzGCF58/lD+IqFle+oUrKiyAYu1ooPfDeCc5WTxJpGm2"
++            "UBXJrteIJrzb0iaSnTasrOBzE5t7BfOiNpGW2EI1ycqGSLbcJO6J5GbTqyQ/uEFNwrqXsIbBJlwx"
++            "MrNn/2sASSjSikjeYmFpGlYTOtlCIxfhpMYuosgku16dXkX0n6/SprAF6/0DODu3KB5um0WQ740G"
++            "ji34eAN1vUiUEsmU1ycA0vcm4X2AldrJapy2UpUt1ZBQKcLNGLsAXAwOTdFx1rvQfFM88nq+vStS"
++            "bII2JSIZP2AL7omhCBbNEmWGHH+UXtZiGZkyxg+VaZRLtC13xHfYwvN05XimTGNyRQp0s96SW7rV"
++            "/L3o9ebNlzAoFnMRs3xPzbJdjbqRfuCWSitHyCSDHzhtAu3quxa2IBP2Ron9cHFDUdhCt0Ft8z1t"
++            "6UoBfF50BHhJdBA+/5XKIi9NODrpi/Gc29GKTVZ3TNR0s0F4y+cujd5lT5vsaZtVrC7czXMymzvF"
++            "qGR84tpKxnXLYxZ8HtBo2Jv+HXEpl0aD5fRLlIZZ8VCbjCjeU4808G4Dde2nE1xlysL9osZCca/G"
++            "glxNQvNYhLsf7cwj2rNJjYdvmxfEoyTfTgeAZ1YjXyMdixGpY4AtTPiQDoXScZMcX0gvF3U65nGd"
++            "zXCUj362UEdT8Lq20SFTOm6JLXzerMb3Mg8wNieZ38Kk+9SkLWrwHykrsh76Go3sUZtLO/20DpO8"
++            "le+gHa609yczba/oI1d4R2BKoWJ9iD7VJkjfMJEeKtYfdNcIueK6gc/KbRWg3L5Sr1g/Q8dVkvmG"
++            "fvunzp7hhrnT3Bnu7PQkXXHl5+925VmWJFwEEXfnBMTxWNG04/9Ax23QAsf00UHb5tiQXTvfPEmW"
++            "dP+vul7Xtcmu6Rd07dS12/7vzgfojiXGBBKMh2MCtVJCUBR6U4mQMDbmp+Oe8aio22idFMTuxOgo"
++            "wvloXPBrHgrpxgPrJox6vYlwOiaciMaEN4OjKhT8wah4IpHqi8bPx4SecxeEkAhvC6m4EDt21BmO"
++            "xXDr3VcD+5gDUNdam6wJVMumeeNdw9p/4ACAf157I/6f7btnof+j/AVW21j6"
++        )
++        stub_bytes = zlib.decompress(base64.b64decode(prebuilt_zlib_b64))
++        stub_exe.write_bytes(stub_bytes)
+ 
+-    exe_path.write_bytes(stub_exe.read_bytes() + payload_zip.read_bytes())
++    exe_path.write_bytes(stub_bytes + payload_zip.read_bytes())
+     return exe_path
+ 
+ 
++
+ def build_windows_native_exe_fallback(
+     project_root: Path,
+     dist_dir: Path,
+diff --git a/sentinel_x/__init__.py b/sentinel_x/__init__.py
+index 78fcd18..cb1387f 100644
+--- a/sentinel_x/__init__.py
++++ b/sentinel_x/__init__.py
+@@ -4,5 +4,5 @@ Local-first, modular cybersecurity monitoring, threat detection, incident respon
+ and release protection (Anti-REA) platform.
+ """
+ 
+-__version__ = "0.1.5"
++__version__ = "0.1.7"
+ __author__ = "Sentinel-X Engineering Team"
+diff --git a/sentinel_x/cli.py b/sentinel_x/cli.py
+index 7d0a2e5..8a6a29d 100644
+--- a/sentinel_x/cli.py
++++ b/sentinel_x/cli.py
+@@ -197,9 +197,26 @@ def main(argv: Optional[List[str]] = None) -> int:
+         return 0
+ 
+     if args.command == "serve":
+-        srv_cfg = SentinelConfig(host=args.host, port=args.port, db_path=config.db_path)
+-        server = create_dashboard_http_server(platform.dashboard, srv_cfg)
+-        print(f"Sentinel-X Security Dashboard listening on http://{args.host}:{args.port}")
++        requested_port = int(args.port)
++        srv_cfg = SentinelConfig(host=args.host, port=requested_port, db_path=config.db_path)
++        try:
++            server = create_dashboard_http_server(
++                platform.dashboard, srv_cfg, allow_port_fallback=True
++            )
++        except OSError as exc:
++            print(
++                f"[ERROR] Cannot bind HTTP server on {args.host}:{requested_port} ({exc}).\n"
++                f"Try specifying another port: sentinel-x serve --host {args.host} --port 8081",
++                file=sys.stderr,
++            )
++            return 1
++        bound_port = int(server.server_address[1])
++        if bound_port != requested_port:
++            print(
++                f"[Notice] Port {requested_port} is unavailable or reserved by OS (WinError 10013/10048); "
++                f"automatically switched to port {bound_port}."
++            )
++        print(f"Sentinel-X Security Dashboard listening on http://{args.host}:{bound_port}")
+         try:
+             server.serve_forever()
+         except KeyboardInterrupt:
+diff --git a/sentinel_x/dashboard/server.py b/sentinel_x/dashboard/server.py
+index f1d2c27..018ab8d 100644
+--- a/sentinel_x/dashboard/server.py
++++ b/sentinel_x/dashboard/server.py
+@@ -391,6 +391,7 @@ async function testConnector(cid) {{
+ def create_dashboard_http_server(
+     dashboard_service: DashboardService,
+     config: Optional[SentinelConfig] = None,
++    allow_port_fallback: bool = True,
+ ) -> HTTPServer:
+     """Create a local-first HTTP server exposing the Security Dashboard, API Settings UI, and REST API."""
+     cfg = config or SentinelConfig()
+@@ -509,4 +510,31 @@ def create_dashboard_http_server(
+             except SentinelXError as exc:
+                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+ 
+-    return ThreadingHTTPServer((cfg.host, cfg.port), DashboardRequestHandler)
++    try:
++        return ThreadingHTTPServer((cfg.host, cfg.port), DashboardRequestHandler)
++    except OSError as primary_exc:
++        if not allow_port_fallback or cfg.port <= 0:
++            raise
++        candidate_ports = [cfg.port + offset for offset in range(1, 11)] + [
++            8081,
++            8088,
++            8888,
++            9000,
++            9080,
++            9090,
++            5000,
++            0,
++        ]
++        seen = {cfg.port}
++        for candidate in candidate_ports:
++            if candidate in seen or candidate < 0 or candidate > 65535:
++                continue
++            seen.add(candidate)
++            try:
++                srv = ThreadingHTTPServer((cfg.host, candidate), DashboardRequestHandler)
++                cfg.port = int(srv.server_address[1])
++                return srv
++            except OSError:
++                continue
++        raise primary_exc
++
+diff --git a/tests/test_api_settings_and_release_pkg.py b/tests/test_api_settings_and_release_pkg.py
+index 542de49..1d5cfd8 100644
+--- a/tests/test_api_settings_and_release_pkg.py
++++ b/tests/test_api_settings_and_release_pkg.py
+@@ -249,7 +249,8 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
+ 
+         index_html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
+         self.assertEqual(index_html.count("<h1"), 1)
+-        for tab_key in ("all", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"):
++        self.assertNotIn('data-tab-target="all"', index_html)
++        for tab_key in ("overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"):
+             self.assertIn(f'data-tab-target="{tab_key}"', index_html)
+         for console_id in (
+             "soc-ingest-textarea",
+@@ -263,6 +264,32 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
+         ):
+             self.assertIn(f'id="{console_id}"', index_html)
+ 
++    def test_dashboard_http_server_port_fallback(self) -> None:
++        with tempfile.TemporaryDirectory() as tmpdir:
++            db = DatabaseManager(Path(tmpdir) / "fallback_test.db")
++            dashboard_svc = DashboardService(db=db)
++            first_server = create_dashboard_http_server(
++                dashboard_svc,
++                SentinelConfig(host="127.0.0.1", port=18990),
++                allow_port_fallback=True,
++            )
++            occupied_port = int(first_server.server_address[1])
++            try:
++                second_cfg = SentinelConfig(host="127.0.0.1", port=occupied_port)
++                second_server = create_dashboard_http_server(
++                    dashboard_svc,
++                    second_cfg,
++                    allow_port_fallback=True,
++                )
++                try:
++                    fallback_port = int(second_server.server_address[1])
++                    self.assertNotEqual(fallback_port, occupied_port)
++                    self.assertEqual(second_cfg.port, fallback_port)
++                finally:
++                    second_server.server_close()
++            finally:
++                first_server.server_close()
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

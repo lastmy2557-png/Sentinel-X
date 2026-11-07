@@ -1,5 +1,5 @@
-ae4027427ffaf7303e5dc81d9577d075ff20736d00b8cf47e3b2ef352d234ddd  release_manifest.json
-42ab8968f192fc6c0690700f2f2c50e2d06c178da1350ce7ab874e63d976d293  sentinel-x-0.1.6-release-bundle.zip
-328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802  sentinel-x.exe
-2d70ec3f04aff5dba3742dcb3d2922ca7198d37812efb2df129a92d5340eda24  sentinel_x-0.1.6-py3-none-any.whl
-33b0ecb0eb9f82e3ee456fdf2b8711de6f36a970938a34c5face8cd1a352dc37  sentinel_x-0.1.6.tar.gz
+38065cb57051921e1ba19ef53215565558b2fd69af3b8abcdc524b1cf65b9506  release_manifest.json
+50e43470f35b979bedd723711c128a5629add6319d7372005d5d28074221efe7  sentinel-x-0.1.7-release-bundle.zip
+5402c2526fe10bb0ef7e0c7060f28eb4d94dec677d4f95a207d376062474b776  sentinel-x.exe
+31097ab88ac4aa88a4e4e98a8e484b0da1316625bb3d95a8d613c232632f827f  sentinel_x-0.1.7-py3-none-any.whl
+8d3cfdc32a244843af3413201da88b6f8eac84c324d857210bab5da14eab22fe  sentinel_x-0.1.7.tar.gz

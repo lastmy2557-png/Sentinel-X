@@ -197,9 +197,26 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     if args.command == "serve":
-        srv_cfg = SentinelConfig(host=args.host, port=args.port, db_path=config.db_path)
-        server = create_dashboard_http_server(platform.dashboard, srv_cfg)
-        print(f"Sentinel-X Security Dashboard listening on http://{args.host}:{args.port}")
+        requested_port = int(args.port)
+        srv_cfg = SentinelConfig(host=args.host, port=requested_port, db_path=config.db_path)
+        try:
+            server = create_dashboard_http_server(
+                platform.dashboard, srv_cfg, allow_port_fallback=True
+            )
+        except OSError as exc:
+            print(
+                f"[ERROR] Cannot bind HTTP server on {args.host}:{requested_port} ({exc}).\n"
+                f"Try specifying another port: sentinel-x serve --host {args.host} --port 8081",
+                file=sys.stderr,
+            )
+            return 1
+        bound_port = int(server.server_address[1])
+        if bound_port != requested_port:
+            print(
+                f"[Notice] Port {requested_port} is unavailable or reserved by OS (WinError 10013/10048); "
+                f"automatically switched to port {bound_port}."
+            )
+        print(f"Sentinel-X Security Dashboard listening on http://{args.host}:{bound_port}")
         try:
             server.serve_forever()
         except KeyboardInterrupt:

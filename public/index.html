@@ -13,21 +13,20 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="show-all-tabs">
+<body>
   <a href="#manual-start" class="skip-link">Skip to the manual</a>
 
   <!-- Top Navigation Bar (sentinelx.app style) -->
   <header class="site-header" id="site-header">
     <div class="container nav-bar">
-      <a href="#overview" class="brand-link" data-tab-target="all" id="nav-brand-link">
+      <a href="#overview" class="brand-link" data-tab-target="overview" id="nav-brand-link">
         <span class="brand-dot"></span>
         <span>SentinelX</span>
-        <span class="version-tag" data-live-version>v0.1.6</span>
+        <span class="version-tag" data-live-version>v0.1.7</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary manual &amp; console navigation" role="tablist">
-        <button type="button" class="nav-tab-btn active" data-tab-target="all" id="nav-tab-all">all</button>
-        <button type="button" class="nav-tab-btn" data-tab-target="overview" id="nav-tab-overview">install</button>
+        <button type="button" class="nav-tab-btn active" data-tab-target="overview" id="nav-tab-overview">install</button>
         <button type="button" class="nav-tab-btn" data-tab-target="dashboard" id="nav-tab-dashboard">operate (soc)</button>
         <button type="button" class="nav-tab-btn" data-tab-target="simulator" id="nav-tab-simulator">detect &amp; sigma</button>
         <button type="button" class="nav-tab-btn" data-tab-target="integrations" id="nav-tab-integrations">connect (/settings)</button>
@@ -89,12 +88,12 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
                     Copy install command
                   </button>
                   <div style="display:flex; gap:0.85rem; align-items:center;">
-                    <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="text-link">Download sentinel-x.exe (<span data-live-version>v0.1.6</span>)</a>
+                    <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="text-link">Download sentinel-x.exe (<span data-live-version>v0.1.7</span>)</a>
                     <a href="/downloads/latest.patch" download="latest.patch" class="text-link">Read latest.patch</a>
                   </div>
                 </div>
                 <div style="margin-top:0.65rem; font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); display:flex; flex-wrap:wrap; justify-content:space-between; gap:0.4rem;">
-                  <span>SHA-256 (<code id="live-exe-sha256">328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802</code>)</span>
+                  <span>SHA-256 (<code id="live-exe-sha256">5402c2526fe10bb0ef7e0c7060f28eb4d94dec677d4f95a207d376062474b776</code>)</span>
                   <button type="button" class="text-link" style="background:none;border:none;padding:0;font-size:0.72rem;" id="btn-copy-exe-hash">copy sha256</button>
                 </div>
               </div>
@@ -784,7 +783,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
         <div class="container">
           <div class="manual-heading-row">
             <span class="step-num">Ref</span>
-            <h2 class="manual-title">Reference, Standalone .EXE &amp; Automated Patch Center (<span data-live-version>v0.1.6</span>)</h2>
+            <h2 class="manual-title">Reference, Standalone .EXE &amp; Automated Patch Center (<span data-live-version>v0.1.7</span>)</h2>
           </div>
           <p class="manual-lead">
             ดาวน์โหลดไบนารี <code>sentinel-x.exe</code> ที่คอมไพล์เสร็จแล้ว, ไฟล์ <code>latest.patch</code>, ตรวจสอบค่า SHA-256 บนเบราว์เซอร์ และดูประวัติการอัปเดตทั้งหมด
@@ -795,7 +794,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
               <div>
                 <h3>sentinel-x.exe (Windows x64)</h3>
                 <p class="showcase-desc">Native 64-bit PE32+ standalone console executable พร้อมรันทันทีทั้งโหมดเปิดเว็บ Dashboard และ CLI</p>
-                <div class="hash-box" id="release-exe-sha256">SHA-256: 328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802</div>
+                <div class="hash-box" id="release-exe-sha256">SHA-256: 5402c2526fe10bb0ef7e0c7060f28eb4d94dec677d4f95a207d376062474b776</div>
               </div>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                 <a href="/downloads/sentinel-x.exe" download="sentinel-x.exe" class="btn btn-primary btn-sm" id="card-btn-download-exe">Download sentinel-x.exe</a>
@@ -807,7 +806,7 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
               <div>
                 <h3>patches/latest.patch</h3>
                 <p class="showcase-desc">Unified git diff patch สำหรับอัปเดตผ่าน <code>scripts\apply_patch_windows.bat</code> หรือ <code>git apply</code></p>
-                <div class="hash-box" id="release-patch-sha256">SHA-256: c24c2d64391673a4f4d01dcf0c416a4c8abbd9b391177a79a2f8c1ef49f0af03</div>
+                <div class="hash-box" id="release-patch-sha256">SHA-256: 16be4bf99a02536e27404a83f65f796a7733c5647611c58aaa4a2e3d6b766d49</div>
               </div>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                 <a href="/downloads/latest.patch" download="latest.patch" class="btn btn-sm" id="card-btn-download-patch">Download latest.patch</a>
@@ -884,10 +883,9 @@ dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
   <footer class="site-footer">
     <div class="container footer-inner">
       <div>
-        <strong>Sentinel-X</strong> (<span data-live-version>v0.1.6</span>) · Local-first SOC, MITRE ATT&amp;CK &amp; Anti-REA Platform
+        <strong>Sentinel-X</strong> (<span data-live-version>v0.1.7</span>) · Local-first SOC, MITRE ATT&amp;CK &amp; Anti-REA Platform
       </div>
       <div class="footer-links">
-        <button type="button" class="nav-tab-btn" data-tab-target="all">all</button>
         <button type="button" class="nav-tab-btn" data-tab-target="overview">install</button>
         <button type="button" class="nav-tab-btn" data-tab-target="dashboard">dashboard</button>
         <button type="button" class="nav-tab-btn" data-tab-target="simulator">detect</button>

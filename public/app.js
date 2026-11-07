@@ -75,7 +75,6 @@
      1. Main Navigation Tab Switcher
      ------------------------------------------------------------------------ */
   const TAB_TITLES = {
-    all: "แสดงครบทุกแท็บ (Interactive Full Console) — ใช้งานทุกฟีเจอร์ได้ในหน้าเดียวหรือเลือกสลับแท็บด้านบน",
     overview: "แท็บ: ภาพรวมแพลตฟอร์ม & Quick-Start Terminal",
     dashboard: "แท็บ: ศูนย์ปฏิบัติการ SOC Dashboard, การนำเข้า Log & บริหารจัดการเคส Incident",
     simulator: "แท็บ: ทดลองตรวจจับภัยคุกคาม (Live Simulator), Sigma YAML Studio & MITRE ATT&CK",
@@ -86,8 +85,8 @@
   };
 
   function activateMainTab(targetKey, shouldScroll) {
-    const validTargets = ["all", "overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"];
-    const key = validTargets.indexOf(targetKey) !== -1 ? targetKey : "all";
+    const validTargets = ["overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"];
+    const key = validTargets.indexOf(targetKey) !== -1 ? targetKey : "overview";
 
     const navBtns = document.querySelectorAll(".nav-links [data-tab-target], .footer-links [data-tab-target]");
     navBtns.forEach(function (btn) {
@@ -99,21 +98,14 @@
     });
 
     const panels = document.querySelectorAll(".tab-panel");
-    if (key === "all") {
-      document.body.classList.add("show-all-tabs");
-      panels.forEach(function (p) {
+    document.body.classList.remove("show-all-tabs");
+    panels.forEach(function (p) {
+      if (p.getAttribute("data-tab-panel") === key) {
         p.classList.add("active");
-      });
-    } else {
-      document.body.classList.remove("show-all-tabs");
-      panels.forEach(function (p) {
-        if (p.getAttribute("data-tab-panel") === key) {
-          p.classList.add("active");
-        } else {
-          p.classList.remove("active");
-        }
-      });
-    }
+      } else {
+        p.classList.remove("active");
+      }
+    });
 
     const indicator = document.getElementById("active-tab-indicator");
     if (indicator && TAB_TITLES[key]) {
@@ -121,7 +113,7 @@
     }
 
     if (window.history && window.history.replaceState) {
-      const hashUrl = key === "all" ? window.location.pathname : "#" + key;
+      const hashUrl = key === "overview" ? window.location.pathname : "#" + key;
       window.history.replaceState(null, "", hashUrl);
     }
 
@@ -155,7 +147,7 @@
     } else if (hash === "capabilities") {
       activateMainTab("capabilities", false);
     } else {
-      activateMainTab("all", false);
+      activateMainTab("overview", false);
     }
   }
 

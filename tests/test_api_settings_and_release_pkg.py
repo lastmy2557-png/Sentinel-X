@@ -249,7 +249,8 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
 
         index_html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
         self.assertEqual(index_html.count("<h1"), 1)
-        for tab_key in ("all", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"):
+        self.assertNotIn('data-tab-target="all"', index_html)
+        for tab_key in ("overview", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"):
             self.assertIn(f'data-tab-target="{tab_key}"', index_html)
         for console_id in (
             "soc-ingest-textarea",
@@ -262,6 +263,32 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
             "sha256-file-input",
         ):
             self.assertIn(f'id="{console_id}"', index_html)
+
+    def test_dashboard_http_server_port_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db = DatabaseManager(Path(tmpdir) / "fallback_test.db")
+            dashboard_svc = DashboardService(db=db)
+            first_server = create_dashboard_http_server(
+                dashboard_svc,
+                SentinelConfig(host="127.0.0.1", port=18990),
+                allow_port_fallback=True,
+            )
+            occupied_port = int(first_server.server_address[1])
+            try:
+                second_cfg = SentinelConfig(host="127.0.0.1", port=occupied_port)
+                second_server = create_dashboard_http_server(
+                    dashboard_svc,
+                    second_cfg,
+                    allow_port_fallback=True,
+                )
+                try:
+                    fallback_port = int(second_server.server_address[1])
+                    self.assertNotEqual(fallback_port, occupied_port)
+                    self.assertEqual(second_cfg.port, fallback_port)
+                finally:
+                    second_server.server_close()
+            finally:
+                first_server.server_close()
 
 
 if __name__ == "__main__":
