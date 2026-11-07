@@ -230,6 +230,22 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
                 continue
             self.assertFalse(line.endswith("("), f"Found parenthesized block in apply_patch_windows.bat: {line}")
 
+    def test_vercel_official_website_assets_and_config(self) -> None:
+        vercel_cfg_path = PROJECT_ROOT / "vercel.json"
+        self.assertTrue(vercel_cfg_path.is_file())
+        vercel_cfg = json.loads(vercel_cfg_path.read_text(encoding="utf-8"))
+        self.assertEqual(vercel_cfg["outputDirectory"], "public")
+
+        for rel_file in ("public/index.html", "public/styles.css", "public/app.js", "public/version.json"):
+            fp = PROJECT_ROOT / rel_file
+            self.assertTrue(fp.is_file(), f"Missing official website file: {rel_file}")
+            self.assertGreater(fp.stat().st_size, 0)
+
+        index_html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(index_html.count("<h1"), 1)
+        self.assertIn('id="simulator"', index_html)
+        self.assertIn('id="anti-rea"', index_html)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sentinel-x"
-version = "0.1.1"
+version = "0.1.2"
 description = "Local-first Cybersecurity, SOC, Threat Detection, Incident Response, and Release Protection (Anti-REA) Platform"
 readme = "README.md"
 requires-python = ">=3.11"

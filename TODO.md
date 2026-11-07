@@ -63,6 +63,10 @@
   - [x] พัฒนา `scripts/release_patch.py` สำหรับปรับเลขเวอร์ชันอัตโนมัติ (`sentinel_x/__init__.py`, `pyproject.toml`), สร้างไฟล์ `.patch` (`patches/v<version>.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ใหม่ และอัปเดต Git Tag บน GitHub
   - [x] พัฒนา `scripts/apply_patch_windows.bat` สำหรับดึง Patch และไฟล์ `.exe` ล่าสุดบน Windows แบบคลิกเดียว พร้อมแสดงป้ายเลขเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
   - [x] ทดสอบครบ 23/23 Automated Tests ทั้งโปรเจกต์
+- [x] **PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT**:
+  - [x] พัฒนาหน้าเว็บ Official Website (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมระบบจำลองการตรวจจับภัยคุกคามและแปลง Log เป็น MITRE ATT&CK แบบเรียลไทม์ (Live Simulator)
+  - [x] สร้างไฟล์ `vercel.json` ตั้งค่า Zero-Config Deployment (`outputDirectory: "public"`), Security Headers และลิงก์ดาวน์โหลดตรง `/downloads/sentinel-x.exe` และ `/downloads/latest.patch`
+  - [x] เชื่อมต่อ `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลง `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
 
 ---
 

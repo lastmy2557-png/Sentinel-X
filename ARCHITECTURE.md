@@ -83,6 +83,8 @@ sentinel-x/
 │   └── apply_patch_windows.bat       # สคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้ว
 ├── patches/                          # เก็บไฟล์ Git Unified Diff Patch (v*.patch, latest.patch, PATCH_MANIFEST.json)
 ├── dist/                             # เก็บไฟล์ sentinel-x.exe ที่คอมไพล์พร้อมใช้งานทันทีพร้อมไฟล์ .sha256 และ build_manifest.json
+├── public/                           # หน้าเว็บ Official Website ของ Sentinel-X สำหรับ Deploy บน Vercel (index.html, styles.css, app.js, version.json)
+├── vercel.json                       # ไฟล์ตั้งค่า Vercel Zero-Config Deployment, Security Headers และลิงก์ดาวน์โหลด .exe / .patch
 ├── tests/                            # Unit Tests & Integration Tests แยกตามโมดูล
 └── docs/                             # เอกสารคู่มือการติดตั้ง การตั้งค่า และความปลอดภัย
 ```

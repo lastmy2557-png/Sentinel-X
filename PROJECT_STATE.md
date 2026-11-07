@@ -16,12 +16,13 @@
   - `PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE)` `[COMPLETED]`
   - `PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE` `[COMPLETED]`
   - `PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE` `[COMPLETED]`
-- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10
+  - `PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT` `[COMPLETED]`
+- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–11
 
 ## 3. Architecture ปัจจุบัน (Current Architecture)
-- **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first)
+- **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first) + Static Official Website (`public/` & `vercel.json`)
 - **ฐานข้อมูล:** SQLite (`sentinel_x/core/database.py`) พร้อม Parameterized Queries
-- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, `scripts/release_patch.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
+- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, `scripts/release_patch.py`, `public/` (`vercel.json`), และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
 - ดูรายละเอียดทั้งหมดใน `ARCHITECTURE.md`
 
 ## 4. ฟีเจอร์ที่พัฒนาแล้ว (Implemented Features)
@@ -41,7 +42,8 @@
 - [x] Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Detection Rule Importer (`sentinel_x/detection/sigma.py`, `tests/test_phase7_extensions.py`)
 - [x] ระบบคอมไพล์เป็นไฟล์ `.exe` แบบ Standalone บน Windows (`sentinel_x/__main__.py`, `scripts/build_exe.py`, `scripts/build_windows.bat`, `tests/test_build_exe.py`)
 - [x] หน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`, `/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมระบบสร้าง GitHub Release & GitHub Packages (`scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py`)
-- [x] ระบบสร้างไฟล์ `.patch` อัตโนมัติ (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` (Native Windows 64-bit PE32+ + Embedded ZipApp) เสร็จสมบูรณ์พร้อมใช้งานทันที, ปรับเลขเวอร์ชันอัตโนมัติ และอัปเดต Git Tag บน GitHub (`scripts/release_patch.py`, `scripts/apply_patch_windows.bat` ผ่านครบ 23/23 tests)
+- [x] ระบบสร้างไฟล์ `.patch` อัตโนมัติ (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` เสร็จสมบูรณ์พร้อมใช้งานทันที, ปรับเลขเวอร์ชันอัตโนมัติ และอัปเดต Git Tag บน GitHub (`scripts/release_patch.py`, `scripts/apply_patch_windows.bat`)
+- [x] หน้าเว็บ **Official Sentinel-X Website** สำหรับ Deploy บน **Vercel** (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`) พร้อม Live MITRE ATT&CK Detection Simulator และระบบซิงค์เลขเวอร์ชัน/SHA-256 อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
 
 ## 5. ปัญหาที่ทราบและข้อจำกัด (Known Issues & Limitations)
 - Wrapper ของ `gh` CLI ในสภาพแวดล้อม VM มีข้อจำกัดเรื่อง `tar utime` บน `/opt` แต่สามารถใช้คำสั่ง `git` และ GitHub REST API ผ่าน credential proxy ได้ปกติ
@@ -53,7 +55,7 @@
 3. แยกข้อมูลจริง (Real Telemetry) ออกจากข้อมูลตัวอย่าง (Sample Data) อย่างชัดเจนในระดับฐานข้อมูลและ Dashboard
 4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน Build ใน `scripts/build_exe.py`, `scripts/build_release_package.py`, และ `scripts/release_patch.py`
 5. ซ่อนค่า API Key ทุกครั้งที่แสดงผลบนหน้า `/settings` หรือส่งกลับผ่าน API (`••••••••xxxx`) และบันทึกประวัติการแก้ไขลงใน `audit.log`
-6. ทุกครั้งที่ไฟล์มีการอัปเดต ให้รัน `scripts/release_patch.py` เพื่อสร้างไฟล์ `.patch`, คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git และปรับเลขเวอร์ชันพร้อม Push Tag ใหม่ขึ้น GitHub เสมอ
+6. ทุกครั้งที่ไฟล์มีการอัปเดต ให้รัน `scripts/release_patch.py` เพื่อสร้างไฟล์ `.patch`, คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git, ซิงค์ข้อมูลหน้าเว็บ `public/version.json` สำหรับ Vercel และปรับเลขเวอร์ชันพร้อม Push Tag ใหม่ขึ้น GitHub เสมอ
 
 ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
-- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10 (23/23 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
+- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–11 (24/24 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)

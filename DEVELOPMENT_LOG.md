@@ -204,3 +204,25 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
 - **ปัญหาที่พบ:**
   - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.1`, คอมไพล์ `dist/sentinel-x.exe`, และ Push ขึ้น GitHub
+
+---
+
+## [2026-11-07] — PHASE 11 (OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนาหน้าเว็บ **Official Sentinel-X Website** ในโฟลเดอร์ `public/` (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมไฟล์ตั้งค่า `vercel.json` ที่ระดับ Root เพื่อให้สามารถเชื่อมต่อ GitHub Repository `lastmy2557-png/Sentinel-X` เข้ากับ **Vercel** และ Deploy ได้ทันทีโดยไม่ต้องตั้งค่าเพิ่ม (Zero-Config)
+  - ออกแบบหน้าเว็บด้วย Vanilla HTML/CSS/JS โทนสี Obsidian Slate แบบมืออาชีพสำหรับระบบ Cybersecurity & SOC พร้อมฟีเจอร์:
+    1. **Quick-Start Interactive Terminal:** สลับดูคำสั่งรัน `Windows (.exe)`, `Python CLI`, `Docker (GHCR)`, และ `Anti-REA Sign` พร้อมปุ่มคัดลอกคำสั่ง
+    2. **Interactive Threat Detection & MITRE ATT&CK Simulator:** จำลองการประมวลผล Raw Log (SSH Brute Force `T1110.001`, Sudo Escalation `T1548.003`, Web Shell Upload `T1505.003`, Reverse Shell `T1059.004` หรือพิมพ์ Log เอง) ให้เห็นผลลัพธ์ `NormalizedSecurityEvent` และ `Alert` แบบเรียลไทม์
+    3. **Direct Download & Integrity Center:** ปุ่มดาวน์โหลด `/downloads/sentinel-x.exe` และ `/downloads/latest.patch` ที่เชื่อมตรงกับไฟล์ล่าสุดบน GitHub พร้อมแสดงค่า SHA-256 Checksum
+  - อัปเดต `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลงใน `public/version.json` และ `public/index.html` โดยอัตโนมัติทุกครั้งที่รัน
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`, `patches/v0.1.2.patch`
+  - แก้ไข: `scripts/release_patch.py`, `tests/test_api_settings_and_release_pkg.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - กำหนด `"framework": null`, `"buildCommand": ""`, และ `"outputDirectory": "public"` ใน `vercel.json` เพื่อไม่ให้ Vercel สับสนกับ `pyproject.toml` ของฝั่ง Python CLI และให้เสิร์ฟหน้าเว็บ Official จากโฟลเดอร์ `public/` ได้อย่างรวดเร็วผ่าน Vercel Edge Network
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.2`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub

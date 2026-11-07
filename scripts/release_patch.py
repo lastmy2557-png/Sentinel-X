@@ -259,6 +259,42 @@ def execute_patch_release(
         version=new_version,
     )
 
+    # 6. Synchronize Vercel Official Website metadata (public/version.json & public/index.html)
+    public_dir = root / "public"
+    if public_dir.is_dir():
+        exe_meta = exe_build_result.get("build_manifest", {})
+        version_json_path = public_dir / "version.json"
+        version_payload = {
+            "platform": "Sentinel-X Cybersecurity & SOC Platform",
+            "version": new_version,
+            "tag": f"v{new_version}",
+            "exe_name": exe_meta.get("executable_name", "sentinel-x.exe"),
+            "exe_size_bytes": exe_meta.get("size_bytes", 0),
+            "exe_sha256": exe_meta.get("sha256", ""),
+            "patch_file": patch_entry.get("patch_file", f"patches/v{new_version}.patch"),
+            "patch_sha256": patch_entry.get("patch_sha256", ""),
+            "github_repo": "https://github.com/lastmy2557-png/Sentinel-X",
+            "github_release_url": f"https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v{new_version}",
+            "ghcr_image": "ghcr.io/lastmy2557-png/sentinel-x:latest",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        version_json_path.write_text(
+            json.dumps(version_payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        updated_version_files.append("public/version.json")
+
+        index_html_path = public_dir / "index.html"
+        if index_html_path.is_file():
+            html_content = index_html_path.read_text(encoding="utf-8")
+            html_content = re.sub(
+                r'(<[^>]+data-live-version[^>]*>)v[0-9]+\.[0-9]+\.[0-9]+(<)',
+                rf'\g<1>v{new_version}\2',
+                html_content,
+            )
+            index_html_path.write_text(html_content, encoding="utf-8")
+            updated_version_files.append("public/index.html")
+
     git_status_info: Dict[str, Any] = {"committed": False, "pushed": False, "tag": f"v{new_version}"}
     if commit_and_push:
         subprocess.run(["git", "add", "-A"], cwd=str(root), check=True, shell=False)

@@ -1,741 +1,288 @@
 # Sentinel-X Official Patch File
-# From Version : v0.1.0
-# To Version   : v0.1.1
-# Summary      : Fix /settings UI button overlap, add automated patch generator, pre-compile Windows PE32+ dist/sentinel-x.exe, and bump version to v0.1.1
-# Generated At : 2026-11-07T12:34:42.647192+00:00
-# Apply Command: git apply patches/v0.1.1.patch
+# From Version : v0.1.1
+# To Version   : v0.1.2
+# Summary      : Add Official Sentinel-X Website for Vercel deployment (public/ & vercel.json) and sync version metadata
+# Generated At : 2026-11-07T13:20:55.986839+00:00
+# Apply Command: git apply patches/v0.1.2.patch
 
-diff --git a/.gitignore b/.gitignore
-index 95560d0..7900d9f 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -29,7 +29,10 @@ __pycache__/
- *.so
- *.egg
- *.egg-info/
--dist/
-+dist/*
-+!dist/sentinel-x.exe
-+!dist/sentinel-x.exe.sha256
-+!dist/build_manifest.json
- build/
- wheels/
- *.spec
 diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
-index 5df941a..33b93cf 100644
+index 33b93cf..80810b4 100644
 --- a/ARCHITECTURE.md
 +++ b/ARCHITECTURE.md
-@@ -75,6 +75,14 @@ sentinel-x/
- │       └── default_rules.json        # กฎตรวจจับเริ่มต้นพร้อม MITRE ATT&CK Mapping
- ├── data/
- │   └── samples/                      # ข้อมูล Log ตัวอย่างสำหรับทดสอบ (ระบุชัดเจนว่าเป็น Sample)
-+├── scripts/
-+│   ├── build_exe.py                  # สคริปต์คอมไพล์ Standalone Windows .exe (PyInstaller / Clang+LLD PE32+ / csc.exe)
-+│   ├── build_release_package.py      # สคริปต์สร้างแพ็กเกจ .whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt
-+│   ├── release_patch.py              # สคริปต์อัตโนมัติสำหรับปรับเวอร์ชัน, สร้างไฟล์ .patch, คอมไพล์ .exe และอัปเดต GitHub
-+│   ├── build_windows.bat             # สคริปต์ Build .exe แบบคลิกเดียวบน Windows
-+│   └── apply_patch_windows.bat       # สคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้ว
-+├── patches/                          # เก็บไฟล์ Git Unified Diff Patch (v*.patch, latest.patch, PATCH_MANIFEST.json)
-+├── dist/                             # เก็บไฟล์ sentinel-x.exe ที่คอมไพล์พร้อมใช้งานทันทีพร้อมไฟล์ .sha256 และ build_manifest.json
+@@ -83,6 +83,8 @@ sentinel-x/
+ │   └── apply_patch_windows.bat       # สคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้ว
+ ├── patches/                          # เก็บไฟล์ Git Unified Diff Patch (v*.patch, latest.patch, PATCH_MANIFEST.json)
+ ├── dist/                             # เก็บไฟล์ sentinel-x.exe ที่คอมไพล์พร้อมใช้งานทันทีพร้อมไฟล์ .sha256 และ build_manifest.json
++├── public/                           # หน้าเว็บ Official Website ของ Sentinel-X สำหรับ Deploy บน Vercel (index.html, styles.css, app.js, version.json)
++├── vercel.json                       # ไฟล์ตั้งค่า Vercel Zero-Config Deployment, Security Headers และลิงก์ดาวน์โหลด .exe / .patch
  ├── tests/                            # Unit Tests & Integration Tests แยกตามโมดูล
  └── docs/                             # เอกสารคู่มือการติดตั้ง การตั้งค่า และความปลอดภัย
  ```
 diff --git a/DEVELOPMENT_LOG.md b/DEVELOPMENT_LOG.md
-index 04e27b3..f2b34d5 100644
+index f2b34d5..d5dded5 100644
 --- a/DEVELOPMENT_LOG.md
 +++ b/DEVELOPMENT_LOG.md
-@@ -180,3 +180,27 @@
-   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`63 files inventoried`, `0 findings`)
+@@ -204,3 +204,25 @@
+   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
  - **ปัญหาที่พบ:**
-   - แก้ไขปัญหาปุ่มเมนูนำทางบนหัวหน้า `/settings` ซ้อนทับกันเมื่อข้อความยาวเสร็จเรียบร้อย พร้อม Commit, Push, และอัปเดต Git Tag `v0.1.0`
+   - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.1`, คอมไพล์ `dist/sentinel-x.exe`, และ Push ขึ้น GitHub
 +
 +---
 +
-+## [2026-11-07] — PHASE 10 (AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE)
++## [2026-11-07] — PHASE 11 (OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT)
 +
 +- **งานที่ทำเสร็จ:**
-+  - พัฒนา `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` โดยใช้ `clang --target=x86_64-pc-windows-msvc` + `llvm-dlltool` + `lld-link` เพื่อคอมไพล์ `dist/sentinel-x.exe` เป็นไฟล์ **Native 64-bit Windows PE32+ Console Executable** พร้อมฝัง ZipApp ในตัวเดียว และอนุญาตให้ Track ไฟล์ `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, และ `dist/build_manifest.json` ลงใน Git เพื่อให้ผู้ใช้ดึงไฟล์ `.exe` ที่คอมไพล์เสร็จแล้วไปรันได้ทันที
-+  - พัฒนา `scripts/release_patch.py` สำหรับทำงานอัตโนมัติทุกครั้งที่มีการอัปเดตไฟล์:
-+    1. ปรับเลขเวอร์ชันอัตโนมัติ (`patch`, `minor`, `major` หรือระบุ `--version`) ใน `sentinel_x/__init__.py` และ `pyproject.toml`
-+    2. รัน Anti-REA Security Audit
-+    3. สร้างไฟล์ `.patch` มาตรฐาน (`patches/v<version>.patch`, `patches/latest.patch`) และ `patches/PATCH_MANIFEST.json`
-+    4. คอมไพล์ `dist/sentinel-x.exe` ใหม่พร้อมคำนวณ SHA-256 และสร้างชุดแพ็กเกจ Release
-+    5. Commit, ติด Git Tag เวอร์ชันใหม่ (`v0.1.1`) และ Push ขึ้น GitHub (`origin/main`) อัตโนมัติ
-+  - พัฒนา `scripts/apply_patch_windows.bat` สำหรับอัปเดต Patch และตรวจรับ `dist\sentinel-x.exe` บน Windows แบบคลิกเดียว พร้อมแสดงป้ายเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
++  - พัฒนาหน้าเว็บ **Official Sentinel-X Website** ในโฟลเดอร์ `public/` (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมไฟล์ตั้งค่า `vercel.json` ที่ระดับ Root เพื่อให้สามารถเชื่อมต่อ GitHub Repository `lastmy2557-png/Sentinel-X` เข้ากับ **Vercel** และ Deploy ได้ทันทีโดยไม่ต้องตั้งค่าเพิ่ม (Zero-Config)
++  - ออกแบบหน้าเว็บด้วย Vanilla HTML/CSS/JS โทนสี Obsidian Slate แบบมืออาชีพสำหรับระบบ Cybersecurity & SOC พร้อมฟีเจอร์:
++    1. **Quick-Start Interactive Terminal:** สลับดูคำสั่งรัน `Windows (.exe)`, `Python CLI`, `Docker (GHCR)`, และ `Anti-REA Sign` พร้อมปุ่มคัดลอกคำสั่ง
++    2. **Interactive Threat Detection & MITRE ATT&CK Simulator:** จำลองการประมวลผล Raw Log (SSH Brute Force `T1110.001`, Sudo Escalation `T1548.003`, Web Shell Upload `T1505.003`, Reverse Shell `T1059.004` หรือพิมพ์ Log เอง) ให้เห็นผลลัพธ์ `NormalizedSecurityEvent` และ `Alert` แบบเรียลไทม์
++    3. **Direct Download & Integrity Center:** ปุ่มดาวน์โหลด `/downloads/sentinel-x.exe` และ `/downloads/latest.patch` ที่เชื่อมตรงกับไฟล์ล่าสุดบน GitHub พร้อมแสดงค่า SHA-256 Checksum
++  - อัปเดต `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลงใน `public/version.json` และ `public/index.html` โดยอัตโนมัติทุกครั้งที่รัน
 +- **ไฟล์ที่เปลี่ยนแปลง:**
-+  - สร้างใหม่: `scripts/release_patch.py`, `scripts/apply_patch_windows.bat`, `patches/v0.1.1.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`, `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, `dist/build_manifest.json`
-+  - แก้ไข: `scripts/build_exe.py`, `sentinel_x/cli.py`, `sentinel_x/dashboard/server.py`, `sentinel_x/security/release_protection/scanner.py`, `sentinel_x/security/release_protection/inventory.py`, `.gitignore`, `tests/test_api_settings_and_release_pkg.py`, `README.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
++  - สร้างใหม่: `public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`, `patches/v0.1.2.patch`
++  - แก้ไข: `scripts/release_patch.py`, `tests/test_api_settings_and_release_pkg.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 +- **การตัดสินใจทางเทคนิค:**
-+  - ใช้ `clang` + `lld-link` คอมไพล์ Native Win32 PE32+ Stub ที่เรียกใช้เฉพาะ `kernel32.dll` (ไม่ต้องพึ่งพา CRT ภายนอก) ต่อท้ายด้วย Python ZipApp เพื่อให้ `dist/sentinel-x.exe` ถูกคอมไพล์เสร็จสมบูรณ์ตั้งแต่ต้นทางทุกครั้งที่มีการออก Patch
++  - กำหนด `"framework": null`, `"buildCommand": ""`, และ `"outputDirectory": "public"` ใน `vercel.json` เพื่อไม่ให้ Vercel สับสนกับ `pyproject.toml` ของฝั่ง Python CLI และให้เสิร์ฟหน้าเว็บ Official จากโฟลเดอร์ `public/` ได้อย่างรวดเร็วผ่าน Vercel Edge Network
 +- **Tests ที่รันและผลการทดสอบ:**
-+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 23/23 tests (`OK`)
++  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
 +  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
 +- **ปัญหาที่พบ:**
-+  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.1`, คอมไพล์ `dist/sentinel-x.exe`, และ Push ขึ้น GitHub
++  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.2`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub
 diff --git a/PROCESS.md b/PROCESS.md
-index eb081f3..5c8ca0c 100644
+index 5c8ca0c..7d14b21 100644
 --- a/PROCESS.md
 +++ b/PROCESS.md
-@@ -6,17 +6,16 @@
+@@ -6,16 +6,15 @@
  ---
  
  ## 1. Phase ปัจจุบัน
--- เพิ่งเสร็จสิ้น: **PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE** `[COMPLETED]`
--- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 22/22 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
-+- เพิ่งเสร็จสิ้น: **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE** `[COMPLETED]`
-+- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 23/23 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
+-- เพิ่งเสร็จสิ้น: **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE** `[COMPLETED]`
+-- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 23/23 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
++- เพิ่งเสร็จสิ้น: **PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT** `[COMPLETED]`
++- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 24/24 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
  
  ## 2. งานที่กำลังทำ
--- ไม่มีงานค้าง (Phase 0 – Phase 9 เสร็จสมบูรณ์ 100%)
-+- ไม่มีงานค้าง (Phase 0 – Phase 10 เสร็จสมบูรณ์ 100%)
+-- ไม่มีงานค้าง (Phase 0 – Phase 10 เสร็จสมบูรณ์ 100%)
++- ไม่มีงานค้าง (Phase 0 – Phase 11 เสร็จสมบูรณ์ 100%)
  
  ## 3. ขั้นตอนล่าสุดที่เสร็จแล้ว
--- พัฒนาหน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`) และ REST API (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) ใน `sentinel_x/dashboard/server.py` และ `sentinel_x/integrations/connectors.py`
--- เพิ่มตาราง `connector_settings` ใน `sentinel_x/core/database.py` เพื่อให้การตั้งค่า API ของลูกค้าถูกบันทึกในฐานข้อมูล SQLite ท้องถิ่นและคงอยู่ข้ามการรีสตาร์ทโปรแกรม
--- พัฒนา `scripts/build_release_package.py`, `Dockerfile`, และ `.github/workflows/release-and-package.yml` สำหรับสร้างและเผยแพร่ GitHub Release และ GitHub Packages (`ghcr.io`)
--- พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py` รันผ่านครบ 22/22 tests ทั้งโปรเจกต์ พร้อมผ่าน Anti-REA Audit (`PASSED`, `63 files inventoried`, `0 findings`)
-+- พัฒนา `scripts/release_patch.py` และ `scripts/apply_patch_windows.bat` สำหรับสร้างไฟล์ `.patch` (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git, ปรับเลขเวอร์ชันอัตโนมัติ (`v0.1.1`) และ Push ขึ้น GitHub พร้อม Git Tag ใหม่ทุกครั้งที่ไฟล์มีการอัปเดต
-+- เพิ่มฟังก์ชัน `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` ที่ใช้ `clang` + `llvm-dlltool` + `lld-link` สร้างไฟล์ `dist/sentinel-x.exe` แบบ Native 64-bit Windows PE32+ Console Executable พร้อมฝัง ZipApp ในไฟล์เดียว
-+- แสดงป้ายเวอร์ชัน (`v0.1.1`) บนหัวหน้าเว็บ `/` และ `/settings` รวมถึงคำสั่ง `sentinel-x --version`
+-- พัฒนา `scripts/release_patch.py` และ `scripts/apply_patch_windows.bat` สำหรับสร้างไฟล์ `.patch` (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git, ปรับเลขเวอร์ชันอัตโนมัติ (`v0.1.1`) และ Push ขึ้น GitHub พร้อม Git Tag ใหม่ทุกครั้งที่ไฟล์มีการอัปเดต
+-- เพิ่มฟังก์ชัน `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` ที่ใช้ `clang` + `llvm-dlltool` + `lld-link` สร้างไฟล์ `dist/sentinel-x.exe` แบบ Native 64-bit Windows PE32+ Console Executable พร้อมฝัง ZipApp ในไฟล์เดียว
+-- แสดงป้ายเวอร์ชัน (`v0.1.1`) บนหัวหน้าเว็บ `/` และ `/settings` รวมถึงคำสั่ง `sentinel-x --version`
++- พัฒนาหน้าเว็บ Official Website ของ Sentinel-X สำหรับ Deploy บน Vercel (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`)
++- เชื่อมต่อ `scripts/release_patch.py` ให้อัปเดต `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (`v0.1.2`) พร้อมคอมไพล์ `dist/sentinel-x.exe` และ Push ขึ้น GitHub
  
  ## 4. สถานะการ Implement
  - โครงสร้างเอกสารและไฟล์ตั้งค่าความปลอดภัยพื้นฐาน: **100% (เสร็จแล้ว)**
-@@ -24,30 +23,29 @@
+@@ -23,27 +22,27 @@
  - `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions + Phase 9 API Settings UI): **100% (เสร็จแล้วและทดสอบผ่าน)**
  - `sentinel_x/security/release_protection/` (Anti-REA): **100% (เสร็จแล้วและทดสอบผ่าน)**
  - `sentinel_x/platform.py` & `sentinel_x/cli.py` (Integration): **100% (เสร็จแล้วและทดสอบผ่าน)**
--- Release Preparation, Windows `.exe` Build Pipeline, & GitHub Release / Packages Pipeline: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
-+- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator & GitHub Release / Packages Pipeline: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
+-- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator & GitHub Release / Packages Pipeline: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
++- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator, GitHub Release / Packages & Vercel Official Website: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
  
  ## 5. ไฟล์ที่สร้างหรือแก้ไข
--- สร้างใหม่ใน Phase 9:
--  - `scripts/build_release_package.py`
--  - `Dockerfile`
--  - `.github/workflows/release-and-package.yml`
--  - `tests/test_api_settings_and_release_pkg.py`
--- แก้ไขใน Phase 9:
--  - `sentinel_x/core/database.py`
--  - `sentinel_x/integrations/connectors.py`
-+- สร้างใหม่ใน Phase 10:
-+  - `scripts/release_patch.py`
-+  - `scripts/apply_patch_windows.bat`
-+  - `patches/v0.1.1.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`
-+  - `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, `dist/build_manifest.json`
-+- แก้ไขใน Phase 10:
-+  - `scripts/build_exe.py`
-+  - `sentinel_x/cli.py`
-   - `sentinel_x/dashboard/server.py`
--  - `sentinel_x/platform.py`
--  - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
-+  - `sentinel_x/security/release_protection/scanner.py`, `sentinel_x/security/release_protection/inventory.py`
-+  - `.gitignore`, `README.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+-- สร้างใหม่ใน Phase 10:
++- สร้างใหม่ใน Phase 11:
++  - `public/index.html`
++  - `public/styles.css`
++  - `public/app.js`
++  - `public/version.json`
++  - `vercel.json`
++  - `patches/v0.1.2.patch`
++- แก้ไขใน Phase 11:
+   - `scripts/release_patch.py`
+-  - `scripts/apply_patch_windows.bat`
+-  - `patches/v0.1.1.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`
+-  - `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, `dist/build_manifest.json`
+-- แก้ไขใน Phase 10:
+-  - `scripts/build_exe.py`
+-  - `sentinel_x/cli.py`
+-  - `sentinel_x/dashboard/server.py`
+-  - `sentinel_x/security/release_protection/scanner.py`, `sentinel_x/security/release_protection/inventory.py`
+-  - `.gitignore`, `README.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
++  - `tests/test_api_settings_and_release_pkg.py`
++  - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
  
  ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
--- เพิ่มหน้า `/settings` สำหรับตั้งค่า API ของ SIEM, EDR, Threat Intelligence, Webhook Notification, และ External Security Tool / SOAR พร้อมการซ่อนค่า API Key (`••••••••xxxx`) และการทดสอบเชื่อมต่อจริง
--- เพิ่ม `scripts/build_release_package.py` สร้างไฟล์ `.whl`, `.tar.gz`, `-release-bundle.zip`, `release_manifest.json`, และ `SHA256SUMS.txt` พร้อม `.github/workflows/release-and-package.yml` และ `Dockerfile`
-+- เพิ่มระบบ `scripts/release_patch.py` ที่ทำหน้าที่รวบขั้นตอนทั้งหมดเมื่อมีการแก้ไขไฟล์: ปรับเลขเวอร์ชัน -> ตรวจ Anti-REA -> สร้างไฟล์ `.patch` -> คอมไพล์ `dist/sentinel-x.exe` ให้เสร็จ -> สร้าง Release Packages -> Commit & Push ขึ้น GitHub พร้อม Tag เวอร์ชันใหม่
+-- เพิ่มระบบ `scripts/release_patch.py` ที่ทำหน้าที่รวบขั้นตอนทั้งหมดเมื่อมีการแก้ไขไฟล์: ปรับเลขเวอร์ชัน -> ตรวจ Anti-REA -> สร้างไฟล์ `.patch` -> คอมไพล์ `dist/sentinel-x.exe` ให้เสร็จ -> สร้าง Release Packages -> Commit & Push ขึ้น GitHub พร้อม Tag เวอร์ชันใหม่
++- เพิ่มโฟลเดอร์ `public/` และ `vercel.json` สำหรับให้ Vercel ดึงไป Deploy เป็นหน้าเว็บ Official ของ Sentinel-X ได้ทันทีจาก GitHub Repository `lastmy2557-png/Sentinel-X` โดยอัปเดตเวอร์ชันตาม Patch ล่าสุด (`v0.1.2`) อัตโนมัติ
  
  ## 7. Tests ที่รันและผลลัพธ์จริง
  - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
--- ผลลัพธ์: `Ran 22 tests — OK`
-+- ผลลัพธ์: `Ran 23 tests — OK`
+-- ผลลัพธ์: `Ran 23 tests — OK`
++- ผลลัพธ์: `Ran 24 tests — OK`
  - คำสั่ง Anti-REA Audit: `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown`
--- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Release Files Inventoried: 63`, `Total Findings: 0`)
-+- ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Findings: 0`)
+ - ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Findings: 0`)
  
- ## 8. Error และปัญหาที่ยังไม่แก้
- - ไม่มี Error ในโค้ดของโปรเจกต์
-@@ -57,16 +55,14 @@
+@@ -55,14 +54,14 @@
  
  ## 10. คำสั่งหรือขั้นตอนที่ต้องใช้ทำงานต่อ
  ```bash
--# รันชุดทดสอบทั้งหมด (22 tests)
-+# รันชุดทดสอบทั้งหมด (23 tests)
+-# รันชุดทดสอบทั้งหมด (23 tests)
++# รันชุดทดสอบทั้งหมด (24 tests)
  python3 -m unittest discover -s tests -p "test_*.py" -v
--# สร้างแพ็กเกจสำหรับ GitHub Release (.whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt)
--python3 scripts/build_release_package.py
--# รัน Anti-REA Audit ตรวจสอบโปรเจกต์
--python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown
-+# ทุกครั้งที่อัปเดตไฟล์: สร้าง .patch, คอมไพล์ dist/sentinel-x.exe, ปรับเวอร์ชัน และ Push ขึ้น GitHub
-+python3 scripts/release_patch.py --bump patch --summary "คำอธิบายการอัปเดต" --commit-and-push
+-# ทุกครั้งที่อัปเดตไฟล์: สร้าง .patch, คอมไพล์ dist/sentinel-x.exe, ปรับเวอร์ชัน และ Push ขึ้น GitHub
++# ทุกครั้งที่อัปเดตไฟล์: สร้าง .patch, คอมไพล์ dist/sentinel-x.exe, ซิงค์หน้าเว็บ Vercel, ปรับเวอร์ชัน และ Push ขึ้น GitHub
+ python3 scripts/release_patch.py --bump patch --summary "คำอธิบายการอัปเดต" --commit-and-push
  ```
  
  ## 11. งานถัดไปที่ต้องทำอย่างชัดเจน
--1. ระบบทั้งหมดใน Phase 0–9 เสร็จสมบูรณ์และพร้อมใช้งานจริง ทั้งหน้า SOC Dashboard (`/`), หน้าตั้งค่า API บริการภายนอก (`/settings`), สคริปต์สร้าง `.exe` (`scripts\build_windows.bat`) และระบบ GitHub Release / Packages
-+1. ระบบทั้งหมดใน Phase 0–10 เสร็จสมบูรณ์และพร้อมใช้งานจริง เมื่อมีการแก้ไขไฟล์ครั้งต่อไปสามารถรัน `python3 scripts/release_patch.py --bump patch --summary "..." --commit-and-push` ได้ทันที
+-1. ระบบทั้งหมดใน Phase 0–10 เสร็จสมบูรณ์และพร้อมใช้งานจริง เมื่อมีการแก้ไขไฟล์ครั้งต่อไปสามารถรัน `python3 scripts/release_patch.py --bump patch --summary "..." --commit-and-push` ได้ทันที
++1. ระบบทั้งหมดใน Phase 0–11 เสร็จสมบูรณ์และพร้อม Import เข้า Vercel จาก GitHub Repository `lastmy2557-png/Sentinel-X` ได้ทันที
  
  ## 12. การตัดสินใจทางเทคนิค
  - เลือกใช้ SQLite แบบ WAL mode ร่วมกับ Parameterized SQL เพื่อความปลอดภัยและประสิทธิภาพสูงสุดในการทำงานแบบ Local-first
 diff --git a/PROJECT_STATE.md b/PROJECT_STATE.md
-index 1657d3b..a70b69f 100644
+index a70b69f..04feb14 100644
 --- a/PROJECT_STATE.md
 +++ b/PROJECT_STATE.md
-@@ -15,12 +15,13 @@
-   - `PHASE 7 — EXTENDED SOC CAPABILITIES` `[COMPLETED]`
+@@ -16,12 +16,13 @@
    - `PHASE 8 — STANDALONE EXECUTABLE BUILD PIPELINE (.EXE)` `[COMPLETED]`
    - `PHASE 9 — EXTERNAL API SETTINGS UI & GITHUB RELEASE / PACKAGES PIPELINE` `[COMPLETED]`
--- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–9
-+  - `PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE` `[COMPLETED]`
-+- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10
+   - `PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE` `[COMPLETED]`
+-- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10
++  - `PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT` `[COMPLETED]`
++- **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–11
  
  ## 3. Architecture ปัจจุบัน (Current Architecture)
- - **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first)
+-- **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first)
++- **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first) + Static Official Website (`public/` & `vercel.json`)
  - **ฐานข้อมูล:** SQLite (`sentinel_x/core/database.py`) พร้อม Parameterized Queries
--- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
-+- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, `scripts/release_patch.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
+-- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, `scripts/release_patch.py`, และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
++- **โมดูลหลัก:** `core`, `ingestion` (รวม `syslog_receiver.py`), `detection` (รวม `mitre.py` และ `sigma.py`), `incidents`, `reporting`, `integrations`, `dashboard` (รวมหน้าตั้งค่า `/settings`), `platform`, `cli`, `__main__`, `scripts/build_exe.py`, `scripts/build_release_package.py`, `scripts/release_patch.py`, `public/` (`vercel.json`), และ `security/release_protection` (Anti-REA) — พัฒนาและเชื่อมต่อกันครบถ้วน
  - ดูรายละเอียดทั้งหมดใน `ARCHITECTURE.md`
  
  ## 4. ฟีเจอร์ที่พัฒนาแล้ว (Implemented Features)
-@@ -39,7 +40,8 @@
- - [x] เอกสารประกอบและการเตรียม Release (`README.md`, `docs/INSTALLATION.md`, `docs/CONFIGURATION.md`, `docs/SECURITY.md`, `requirements.txt`, `pyproject.toml`)
+@@ -41,7 +42,8 @@
  - [x] Real-time UDP Syslog Receiver (`sentinel_x/ingestion/syslog_receiver.py`) และ Sigma YAML Detection Rule Importer (`sentinel_x/detection/sigma.py`, `tests/test_phase7_extensions.py`)
  - [x] ระบบคอมไพล์เป็นไฟล์ `.exe` แบบ Standalone บน Windows (`sentinel_x/__main__.py`, `scripts/build_exe.py`, `scripts/build_windows.bat`, `tests/test_build_exe.py`)
--- [x] หน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`, `/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมระบบสร้าง GitHub Release & GitHub Packages (`scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py` ผ่านครบ 22/22 tests)
-+- [x] หน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`, `/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมระบบสร้าง GitHub Release & GitHub Packages (`scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py`)
-+- [x] ระบบสร้างไฟล์ `.patch` อัตโนมัติ (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` (Native Windows 64-bit PE32+ + Embedded ZipApp) เสร็จสมบูรณ์พร้อมใช้งานทันที, ปรับเลขเวอร์ชันอัตโนมัติ และอัปเดต Git Tag บน GitHub (`scripts/release_patch.py`, `scripts/apply_patch_windows.bat` ผ่านครบ 23/23 tests)
+ - [x] หน้าเว็บตั้งค่าการเชื่อมต่อ API บริการภายนอก (`/settings`, `/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมระบบสร้าง GitHub Release & GitHub Packages (`scripts/build_release_package.py`, `Dockerfile`, `.github/workflows/release-and-package.yml`, `tests/test_api_settings_and_release_pkg.py`)
+-- [x] ระบบสร้างไฟล์ `.patch` อัตโนมัติ (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` (Native Windows 64-bit PE32+ + Embedded ZipApp) เสร็จสมบูรณ์พร้อมใช้งานทันที, ปรับเลขเวอร์ชันอัตโนมัติ และอัปเดต Git Tag บน GitHub (`scripts/release_patch.py`, `scripts/apply_patch_windows.bat` ผ่านครบ 23/23 tests)
++- [x] ระบบสร้างไฟล์ `.patch` อัตโนมัติ (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` เสร็จสมบูรณ์พร้อมใช้งานทันที, ปรับเลขเวอร์ชันอัตโนมัติ และอัปเดต Git Tag บน GitHub (`scripts/release_patch.py`, `scripts/apply_patch_windows.bat`)
++- [x] หน้าเว็บ **Official Sentinel-X Website** สำหรับ Deploy บน **Vercel** (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`) พร้อม Live MITRE ATT&CK Detection Simulator และระบบซิงค์เลขเวอร์ชัน/SHA-256 อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
  
  ## 5. ปัญหาที่ทราบและข้อจำกัด (Known Issues & Limitations)
  - Wrapper ของ `gh` CLI ในสภาพแวดล้อม VM มีข้อจำกัดเรื่อง `tar utime` บน `/opt` แต่สามารถใช้คำสั่ง `git` และ GitHub REST API ผ่าน credential proxy ได้ปกติ
-@@ -49,8 +51,9 @@
- 1. ใช้ **Python 3.11+** และ **SQLite** เพื่อความเบา ติดตั้งง่าย และทำงานแบบ Local-first ได้ทันทีโดยไม่ต้องพึ่งพา External Database Server
- 2. ใช้ **Native RFC 8032 Ed25519 Digital Signature & RFC 8410 PEM** คู่กับ SHA-256 File Inventory ในระบบ Anti-REA เพื่อยืนยันความแท้จริงของผู้เผยแพร่โดยไม่ฝัง Private Key ในโค้ดและทำงานได้ทุก OS โดยไม่ต้องพึ่งพาไลบรารีภายนอก
+@@ -53,7 +55,7 @@
  3. แยกข้อมูลจริง (Real Telemetry) ออกจากข้อมูลตัวอย่าง (Sample Data) อย่างชัดเจนในระดับฐานข้อมูลและ Dashboard
--4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน PyInstaller Build ใน `scripts/build_exe.py` และ `scripts/build_release_package.py`
-+4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน Build ใน `scripts/build_exe.py`, `scripts/build_release_package.py`, และ `scripts/release_patch.py`
+ 4. บังคับรัน **Anti-REA Security Audit** ก่อนเริ่มขั้นตอน Build ใน `scripts/build_exe.py`, `scripts/build_release_package.py`, และ `scripts/release_patch.py`
  5. ซ่อนค่า API Key ทุกครั้งที่แสดงผลบนหน้า `/settings` หรือส่งกลับผ่าน API (`••••••••xxxx`) และบันทึกประวัติการแก้ไขลงใน `audit.log`
-+6. ทุกครั้งที่ไฟล์มีการอัปเดต ให้รัน `scripts/release_patch.py` เพื่อสร้างไฟล์ `.patch`, คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git และปรับเลขเวอร์ชันพร้อม Push Tag ใหม่ขึ้น GitHub เสมอ
+-6. ทุกครั้งที่ไฟล์มีการอัปเดต ให้รัน `scripts/release_patch.py` เพื่อสร้างไฟล์ `.patch`, คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git และปรับเลขเวอร์ชันพร้อม Push Tag ใหม่ขึ้น GitHub เสมอ
++6. ทุกครั้งที่ไฟล์มีการอัปเดต ให้รัน `scripts/release_patch.py` เพื่อสร้างไฟล์ `.patch`, คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git, ซิงค์ข้อมูลหน้าเว็บ `public/version.json` สำหรับ Vercel และปรับเลขเวอร์ชันพร้อม Push Tag ใหม่ขึ้น GitHub เสมอ
  
  ## 7. สถานะโปรเจกต์โดยรวม (Overall Status)
--- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–9 (22/22 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
-+- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10 (23/23 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
-diff --git a/README.md b/README.md
-index 5bee738..972dd67 100644
---- a/README.md
-+++ b/README.md
-@@ -84,22 +84,22 @@ python3 -m sentinel_x.security.release_protection.cli verify \
-   --public-key /tmp/sentinel_release_public.pem
- ```
- 
--### 4. การคอมไพล์เป็นไฟล์ `.exe` บน Windows (Standalone Executable)
-+### 4. การอัปเดต Patch และใช้งานไฟล์ `dist\sentinel-x.exe` ที่คอมไพล์เสร็จแล้วบน Windows
-+ทุกครั้งที่มีการอัปเดตโค้ด ระบบจะสร้างไฟล์ `.patch` ในโฟลเดอร์ `patches/` และคอมไพล์ไฟล์ `dist\sentinel-x.exe` ให้เสร็จสมบูรณ์พร้อมใช้งานทันที:
- ```bat
--REM รันสคริปต์ One-Click Build บนเครื่อง Windows (สร้าง .venv, รัน Tests, ตรวจ Anti-REA, และสร้าง dist\sentinel-x.exe)
--scripts\build_windows.bat
-+REM วิธีที่ 1: รันสคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ล่าสุดแบบคลิกเดียว
-+scripts\apply_patch_windows.bat
- 
--REM หรือตรวจสอบคำสั่ง Build แบบ Dry-run
--python scripts/build_exe.py --dry-run
-+REM วิธีที่ 2: หรือใช้ git pull แล้วรันไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้วได้ทันที (ไม่ต้องคอมไพล์ใหม่เอง)
-+git pull origin main
-+dist\sentinel-x.exe --version
-+dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080
- ```
- 
--### 5. การสร้าง Release Artifacts & GitHub Packages
-+### 5. การสร้าง Patch, คอมไพล์ `.exe` และอัปเดตเวอร์ชันขึ้น GitHub อัตโนมัติ (`scripts/release_patch.py`)
- ```bash
--# สร้างแพ็กเกจสำหรับแจกจ่าย (PEP 427 .whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt)
--python3 scripts/build_release_package.py --dist-dir dist
--
--# สร้าง Container Image สำหรับ GitHub Packages (ghcr.io/lastmy2557-png/sentinel-x)
--docker build -t ghcr.io/lastmy2557-png/sentinel-x:latest .
-+# ปรับเลขเวอร์ชัน (เช่น 0.1.0 -> 0.1.1), สร้างไฟล์ patches/v0.1.1.patch, คอมไพล์ dist/sentinel-x.exe และ Push ขึ้น GitHub
-+python3 scripts/release_patch.py --bump patch --summary "คำอธิบายการอัปเดต" --commit-and-push
- ```
- 
- ---
+-- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–10 (23/23 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
++- **สถานะ:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–11 (24/24 Automated Tests ผ่าน 100%, Anti-REA Audit 0 Findings)
 diff --git a/TODO.md b/TODO.md
-index 447bc15..b0917e3 100644
+index b0917e3..7d8fe11 100644
 --- a/TODO.md
 +++ b/TODO.md
-@@ -57,7 +57,12 @@
-   - [x] พัฒนา REST API สำหรับบันทึกและทดสอบการเชื่อมต่อจริง (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมจัดเก็บลง SQLite (`connector_settings`) และซ่อนค่า API Key (`••••••••xxxx`)
-   - [x] พัฒนา `scripts/build_release_package.py` สร้างไฟล์ `.whl`, `.tar.gz`, `-release-bundle.zip`, `release_manifest.json`, และ `SHA256SUMS.txt`
-   - [x] พัฒนา `Dockerfile` และ `.github/workflows/release-and-package.yml` สำหรับเผยแพร่ GitHub Release และ GitHub Packages (`ghcr.io`)
--  - [x] พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py` (รันผ่านครบ 22/22 tests ทั้งโปรเจกต์)
-+  - [x] พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py`
-+- [x] **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE**:
-+  - [x] พัฒนา `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` เพื่อคอมไพล์ `dist/sentinel-x.exe` (Windows 64-bit PE32+ Console Executable + Embedded ZipApp) ให้เสร็จพร้อมใช้งานทันทีโดยไม่ต้องรอคอมไพล์เอง
-+  - [x] พัฒนา `scripts/release_patch.py` สำหรับปรับเลขเวอร์ชันอัตโนมัติ (`sentinel_x/__init__.py`, `pyproject.toml`), สร้างไฟล์ `.patch` (`patches/v<version>.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ใหม่ และอัปเดต Git Tag บน GitHub
-+  - [x] พัฒนา `scripts/apply_patch_windows.bat` สำหรับดึง Patch และไฟล์ `.exe` ล่าสุดบน Windows แบบคลิกเดียว พร้อมแสดงป้ายเลขเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
-+  - [x] ทดสอบครบ 23/23 Automated Tests ทั้งโปรเจกต์
+@@ -63,6 +63,10 @@
+   - [x] พัฒนา `scripts/release_patch.py` สำหรับปรับเลขเวอร์ชันอัตโนมัติ (`sentinel_x/__init__.py`, `pyproject.toml`), สร้างไฟล์ `.patch` (`patches/v<version>.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ใหม่ และอัปเดต Git Tag บน GitHub
+   - [x] พัฒนา `scripts/apply_patch_windows.bat` สำหรับดึง Patch และไฟล์ `.exe` ล่าสุดบน Windows แบบคลิกเดียว พร้อมแสดงป้ายเลขเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
+   - [x] ทดสอบครบ 23/23 Automated Tests ทั้งโปรเจกต์
++- [x] **PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT**:
++  - [x] พัฒนาหน้าเว็บ Official Website (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมระบบจำลองการตรวจจับภัยคุกคามและแปลง Log เป็น MITRE ATT&CK แบบเรียลไทม์ (Live Simulator)
++  - [x] สร้างไฟล์ `vercel.json` ตั้งค่า Zero-Config Deployment (`outputDirectory: "public"`), Security Headers และลิงก์ดาวน์โหลดตรง `/downloads/sentinel-x.exe` และ `/downloads/latest.patch`
++  - [x] เชื่อมต่อ `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลง `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
  
  ---
  
 diff --git a/pyproject.toml b/pyproject.toml
-index 32018f7..161c427 100644
+index 161c427..391fca4 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
 @@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
  
  [project]
  name = "sentinel-x"
--version = "0.1.0"
-+version = "0.1.1"
+-version = "0.1.1"
++version = "0.1.2"
  description = "Local-first Cybersecurity, SOC, Threat Detection, Incident Response, and Release Protection (Anti-REA) Platform"
  readme = "README.md"
  requires-python = ">=3.11"
-diff --git a/scripts/build_exe.py b/scripts/build_exe.py
-index b0a06bc..edfb713 100644
---- a/scripts/build_exe.py
-+++ b/scripts/build_exe.py
-@@ -84,10 +84,36 @@ def _find_windows_csc_compiler() -> Optional[Path]:
-     return None
+diff --git a/scripts/release_patch.py b/scripts/release_patch.py
+index c29cc8c..16af762 100644
+--- a/scripts/release_patch.py
++++ b/scripts/release_patch.py
+@@ -259,6 +259,42 @@ def execute_patch_release(
+         version=new_version,
+     )
  
- 
-+def _read_current_version(project_root: Path = PROJECT_ROOT) -> str:
-+    init_file = project_root / "sentinel_x" / "__init__.py"
-+    if init_file.is_file():
-+        for line in init_file.read_text(encoding="utf-8").splitlines():
-+            if line.strip().startswith("__version__"):
-+                _, _, rhs = line.partition("=")
-+                return rhs.strip().strip('"').strip("'")
-+    return __version__
-+
-+
- def _create_embedded_payload_zip(project_root: Path, zip_path: Path) -> str:
--    """Create a deterministic zip archive containing sentinel_x, config/rules, and data/samples."""
-+    """Create a deterministic zip archive containing __main__.py, sentinel_x, config/rules, and data/samples."""
-     zip_path.parent.mkdir(parents=True, exist_ok=True)
-+    root_main_code = (
-+        "# Sentinel-X Embedded ZipApp Root Entrypoint\n"
-+        "from __future__ import annotations\n"
-+        "import sys\n"
-+        "from pathlib import Path\n"
-+        "try:\n"
-+        "    _exe_dir = Path(__file__).resolve().parent\n"
-+        "    if _exe_dir.parent.name == 'dist' and (_exe_dir.parent.parent / 'sentinel_x' / '__init__.py').is_file():\n"
-+        "        sys.path.insert(0, str(_exe_dir.parent.parent))\n"
-+        "except Exception:\n"
-+        "    pass\n"
-+        "from sentinel_x.__main__ import run_entrypoint\n"
-+        "if __name__ == '__main__':\n"
-+        "    raise SystemExit(run_entrypoint())\n"
-+    )
-     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-+        zf.writestr("__main__.py", root_main_code.encode("utf-8"))
-         for folder_rel in ("sentinel_x", "config/rules", "data/samples"):
-             src_folder = project_root / folder_rel
-             if not src_folder.is_dir():
-@@ -100,6 +126,179 @@ def _create_embedded_payload_zip(project_root: Path, zip_path: Path) -> str:
-     return hashlib.sha256(zip_path.read_bytes()).hexdigest()[:16]
- 
- 
-+def build_windows_pe_zipapp_exe(
-+    project_root: Path,
-+    dist_dir: Path,
-+    work_dir: Path,
-+    exe_name: str = "sentinel-x",
-+) -> Path:
-+    """
-+    Compile a native 64-bit Windows PE32+ Console Executable (x86_64) using clang + llvm-dlltool + lld-link
-+    and append the deterministic Sentinel-X Python ZipApp payload directly to the .exe binary.
-+    Works both on Windows (natively via Win32 CreateProcessW) and via `python dist/sentinel-x.exe`.
-+    """
-+    dist_dir.mkdir(parents=True, exist_ok=True)
-+    work_dir.mkdir(parents=True, exist_ok=True)
-+
-+    payload_zip = work_dir / "sentinel_x_payload.zip"
-+    _create_embedded_payload_zip(project_root, payload_zip)
-+
-+    def_file = work_dir / "kernel32.def"
-+    def_file.write_text(
-+        "LIBRARY kernel32.dll\n"
-+        "EXPORTS\n"
-+        "GetModuleFileNameW\n"
-+        "GetCommandLineW\n"
-+        "CreateProcessW\n"
-+        "WaitForSingleObject\n"
-+        "GetExitCodeProcess\n"
-+        "CloseHandle\n"
-+        "ExitProcess\n",
-+        encoding="utf-8",
-+    )
-+    lib_file = work_dir / "kernel32.lib"
-+    c_file = work_dir / "pe_launcher.c"
-+    obj_file = work_dir / "pe_launcher.obj"
-+    stub_exe = work_dir / "pe_stub.exe"
-+    exe_path = dist_dir / (exe_name if exe_name.endswith(".exe") else f"{exe_name}.exe")
-+
-+    c_code = """
-+typedef unsigned short WCHAR;
-+typedef unsigned int DWORD;
-+typedef int BOOL;
-+typedef void* HANDLE;
-+typedef struct _STARTUPINFOW {
-+    DWORD cb; WCHAR *lpReserved; WCHAR *lpDesktop; WCHAR *lpTitle;
-+    DWORD dwX; DWORD dwY; DWORD dwXSize; DWORD dwYSize;
-+    DWORD dwXCountChars; DWORD dwYCountChars; DWORD dwFillAttribute;
-+    DWORD dwFlags; unsigned short wShowWindow; unsigned short cbReserved2;
-+    unsigned char *lpReserved2; HANDLE hStdInput; HANDLE hStdOutput; HANDLE hStdError;
-+} STARTUPINFOW;
-+typedef struct _PROCESS_INFORMATION {
-+    HANDLE hProcess; HANDLE hThread; DWORD dwProcessId; DWORD dwThreadId;
-+} PROCESS_INFORMATION;
-+
-+__declspec(dllimport) DWORD __stdcall GetModuleFileNameW(HANDLE, WCHAR*, DWORD);
-+__declspec(dllimport) WCHAR* __stdcall GetCommandLineW(void);
-+__declspec(dllimport) BOOL __stdcall CreateProcessW(const WCHAR*, WCHAR*, void*, void*, BOOL, DWORD, void*, const WCHAR*, STARTUPINFOW*, PROCESS_INFORMATION*);
-+__declspec(dllimport) DWORD __stdcall WaitForSingleObject(HANDLE, DWORD);
-+__declspec(dllimport) BOOL __stdcall GetExitCodeProcess(HANDLE, DWORD*);
-+__declspec(dllimport) BOOL __stdcall CloseHandle(HANDLE);
-+__declspec(dllimport) void __stdcall ExitProcess(DWORD);
-+
-+static void append_str(WCHAR *dst, int *pos, const WCHAR *src) {
-+    int i = 0;
-+    while (src[i] != 0 && *pos < 32000) {
-+        dst[(*pos)++] = src[i++];
-+    }
-+    dst[*pos] = 0;
-+}
-+
-+static WCHAR* skip_argv0(WCHAR *cmd) {
-+    if (!cmd) return cmd;
-+    while (*cmd == L' ' || *cmd == L'\\t') cmd++;
-+    if (*cmd == L'"') {
-+        cmd++;
-+        while (*cmd && *cmd != L'"') cmd++;
-+        if (*cmd == L'"') cmd++;
-+    } else {
-+        while (*cmd && *cmd != L' ' && *cmd != L'\\t') cmd++;
-+    }
-+    return cmd;
-+}
-+
-+void mainCRTStartup(void) {
-+    static WCHAR selfPath[4096];
-+    static WCHAR fullCmd[32768];
-+    STARTUPINFOW si;
-+    PROCESS_INFORMATION pi;
-+    DWORD exitCode = 1;
-+    int i;
-+
-+    for (i = 0; i < (int)sizeof(si); i++) ((unsigned char*)&si)[i] = 0;
-+    for (i = 0; i < (int)sizeof(pi); i++) ((unsigned char*)&pi)[i] = 0;
-+    si.cb = sizeof(si);
-+
-+    GetModuleFileNameW(0, selfPath, 4095);
-+    WCHAR *rest = skip_argv0(GetCommandLineW());
-+
-+    int pos = 0;
-+    const WCHAR p1[] = { 'p','y','t','h','o','n',' ','"',0 };
-+    const WCHAR q[] = { '"', 0 };
-+    append_str(fullCmd, &pos, p1);
-+    append_str(fullCmd, &pos, selfPath);
-+    append_str(fullCmd, &pos, q);
-+    if (rest && *rest) {
-+        append_str(fullCmd, &pos, rest);
-+    }
-+
-+    BOOL ok = CreateProcessW(0, fullCmd, 0, 0, 1, 0, 0, 0, &si, &pi);
-+    if (!ok) {
-+        pos = 0;
-+        const WCHAR p2[] = { 'p','y',' ','-','3',' ','"',0 };
-+        append_str(fullCmd, &pos, p2);
-+        append_str(fullCmd, &pos, selfPath);
-+        append_str(fullCmd, &pos, q);
-+        if (rest && *rest) {
-+            append_str(fullCmd, &pos, rest);
++    # 6. Synchronize Vercel Official Website metadata (public/version.json & public/index.html)
++    public_dir = root / "public"
++    if public_dir.is_dir():
++        exe_meta = exe_build_result.get("build_manifest", {})
++        version_json_path = public_dir / "version.json"
++        version_payload = {
++            "platform": "Sentinel-X Cybersecurity & SOC Platform",
++            "version": new_version,
++            "tag": f"v{new_version}",
++            "exe_name": exe_meta.get("executable_name", "sentinel-x.exe"),
++            "exe_size_bytes": exe_meta.get("size_bytes", 0),
++            "exe_sha256": exe_meta.get("sha256", ""),
++            "patch_file": patch_entry.get("patch_file", f"patches/v{new_version}.patch"),
++            "patch_sha256": patch_entry.get("patch_sha256", ""),
++            "github_repo": "https://github.com/lastmy2557-png/Sentinel-X",
++            "github_release_url": f"https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v{new_version}",
++            "ghcr_image": "ghcr.io/lastmy2557-png/sentinel-x:latest",
++            "updated_at": datetime.now(timezone.utc).isoformat(),
 +        }
-+        ok = CreateProcessW(0, fullCmd, 0, 0, 1, 0, 0, 0, &si, &pi);
-+    }
-+    if (ok) {
-+        WaitForSingleObject(pi.hProcess, 0xFFFFFFFF);
-+        GetExitCodeProcess(pi.hProcess, &exitCode);
-+        CloseHandle(pi.hThread);
-+        CloseHandle(pi.hProcess);
-+    }
-+    ExitProcess(exitCode);
-+}
-+"""
-+    c_file.write_text(c_code.strip() + "\n", encoding="utf-8")
++        version_json_path.write_text(
++            json.dumps(version_payload, indent=2, ensure_ascii=False) + "\n",
++            encoding="utf-8",
++        )
++        updated_version_files.append("public/version.json")
 +
-+    subprocess.run(
-+        ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
-+        check=True,
-+        capture_output=True,
-+        text=True,
-+        shell=False,
-+    )
-+    subprocess.run(
-+        [
-+            "clang",
-+            "--target=x86_64-pc-windows-msvc",
-+            "-Os",
-+            "-fno-stack-protector",
-+            "-mno-stack-arg-probe",
-+            "-c",
-+            str(c_file),
-+            "-o",
-+            str(obj_file),
-+        ],
-+        check=True,
-+        capture_output=True,
-+        text=True,
-+        shell=False,
-+    )
-+    subprocess.run(
-+        [
-+            "lld-link",
-+            "/subsystem:console",
-+            "/entry:mainCRTStartup",
-+            "/nodefaultlib",
-+            str(obj_file),
-+            str(lib_file),
-+            f"/out:{stub_exe}",
-+        ],
-+        check=True,
-+        capture_output=True,
-+        text=True,
-+        shell=False,
-+    )
++        index_html_path = public_dir / "index.html"
++        if index_html_path.is_file():
++            html_content = index_html_path.read_text(encoding="utf-8")
++            html_content = re.sub(
++                r'(<[^>]+data-live-version[^>]*>)v[0-9]+\.[0-9]+\.[0-9]+(<)',
++                rf'\g<1>v{new_version}\2',
++                html_content,
++            )
++            index_html_path.write_text(html_content, encoding="utf-8")
++            updated_version_files.append("public/index.html")
 +
-+    exe_path.write_bytes(stub_exe.read_bytes() + payload_zip.read_bytes())
-+    return exe_path
-+
-+
- def build_windows_native_exe_fallback(
-     project_root: Path,
-     dist_dir: Path,
-@@ -207,23 +406,24 @@ class SentinelXLauncher {{
- 
- 
- def write_build_integrity_artifacts(
--    exe_path: Path, dist_dir: Path, builder_used: str = "PyInstaller"
-+    exe_path: Path, dist_dir: Path, builder_used: str = "PyInstaller", project_root: Path = PROJECT_ROOT
- ) -> Dict[str, Any]:
-     """Compute SHA-256 digest of the compiled executable and write integrity metadata."""
-     sha256_hex = compute_file_sha256(exe_path)
-     size_bytes = exe_path.stat().st_size
-+    cur_version = _read_current_version(project_root)
- 
-     checksum_file = dist_dir / f"{exe_path.name}.sha256"
-     checksum_file.write_text(f"{sha256_hex}  {exe_path.name}\n", encoding="utf-8")
- 
-     build_manifest = {
-         "schema": "sentinel_x.executable_build.v1",
--        "version": __version__,
-+        "version": cur_version,
-         "builder": builder_used,
-         "python_version": py_platform.python_version(),
-         "built_at": datetime.now(timezone.utc).isoformat(),
--        "target_os": py_platform.system(),
--        "target_arch": py_platform.machine(),
-+        "target_os": "Windows" if exe_path.suffix.lower() == ".exe" else py_platform.system(),
-+        "target_arch": "x86_64" if exe_path.suffix.lower() == ".exe" else py_platform.machine(),
-         "executable_name": exe_path.name,
-         "size_bytes": size_bytes,
-         "sha256": sha256_hex,
-@@ -314,15 +514,20 @@ def run_build(
-             )
-             builder_used = "WindowsNativePE+EmbeddedZip"
-         else:
--            raise RuntimeError(
--                "PyInstaller build failed or PyInstaller is not installed. "
--                "Install it first with: pip install pyinstaller"
-+            exe_path = build_windows_pe_zipapp_exe(
-+                project_root=root,
-+                dist_dir=out_dist,
-+                work_dir=out_work,
-+                exe_name=exe_name,
-             )
-+            builder_used = "ClangLLDWindowsPE32Plus+EmbeddedZipApp"
- 
-     if not exe_path.is_file():
-         raise RuntimeError(f"Expected compiled binary not found at: {exe_path}")
- 
--    build_manifest = write_build_integrity_artifacts(exe_path, out_dist, builder_used=builder_used)
-+    build_manifest = write_build_integrity_artifacts(
-+        exe_path, out_dist, builder_used=builder_used, project_root=root
-+    )
-     return {
-         "status": "BUILT",
-         "executable_path": str(exe_path),
+     git_status_info: Dict[str, Any] = {"committed": False, "pushed": False, "tag": f"v{new_version}"}
+     if commit_and_push:
+         subprocess.run(["git", "add", "-A"], cwd=str(root), check=True, shell=False)
 diff --git a/sentinel_x/__init__.py b/sentinel_x/__init__.py
-index 1b47b30..4406a8f 100644
+index 4406a8f..6923928 100644
 --- a/sentinel_x/__init__.py
 +++ b/sentinel_x/__init__.py
 @@ -4,5 +4,5 @@ Local-first, modular cybersecurity monitoring, threat detection, incident respon
  and release protection (Anti-REA) platform.
  """
  
--__version__ = "0.1.0"
-+__version__ = "0.1.1"
+-__version__ = "0.1.1"
++__version__ = "0.1.2"
  __author__ = "Sentinel-X Engineering Team"
-diff --git a/sentinel_x/cli.py b/sentinel_x/cli.py
-index f637f9b..7d0a2e5 100644
---- a/sentinel_x/cli.py
-+++ b/sentinel_x/cli.py
-@@ -17,6 +17,7 @@ import sys
- from pathlib import Path
- from typing import List, Optional
- 
-+from sentinel_x import __version__
- from sentinel_x.core.config import SentinelConfig
- from sentinel_x.dashboard.server import create_dashboard_http_server
- from sentinel_x.platform import SentinelXPlatform
-@@ -27,6 +28,11 @@ def build_cli_parser() -> argparse.ArgumentParser:
-         prog="sentinel-x",
-         description="Sentinel-X Cybersecurity & SOC Platform CLI",
-     )
-+    parser.add_argument(
-+        "--version",
-+        action="version",
-+        version=f"Sentinel-X v{__version__}",
-+    )
-     parser.add_argument(
-         "--db",
-         default="",
-diff --git a/sentinel_x/dashboard/server.py b/sentinel_x/dashboard/server.py
-index c709cf4..f1d2c27 100644
---- a/sentinel_x/dashboard/server.py
-+++ b/sentinel_x/dashboard/server.py
-@@ -24,6 +24,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
- from typing import Any, Dict, Optional
- from urllib.parse import parse_qs, urlparse
- 
-+from sentinel_x import __version__
- from sentinel_x.core.config import SentinelConfig
- from sentinel_x.core.database import DatabaseManager
- from sentinel_x.core.exceptions import SentinelXError, ValidationError
-@@ -76,6 +77,7 @@ class DashboardService:
- 
-         return {
-             "platform": "Sentinel-X SOC Platform",
-+            "version": __version__,
-             "data_origin_notice": data_origin_notice,
-             "statistics": stats,
-             "recent_events": recent_events,
-@@ -137,12 +139,13 @@ class DashboardService:
- <html lang="th">
- <head>
- <meta charset="utf-8">
--<title>Sentinel-X Security Operations Dashboard</title>
-+<title>Sentinel-X v{esc(__version__)} — Security Operations Dashboard</title>
- <style>
- *, *::before, *::after {{ box-sizing: border-box; }}
- body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
- .topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
--.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
-+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }}
-+.ver-pill {{ font-size: 0.8rem; background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }}
- .nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
- .nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
- .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
-@@ -159,7 +162,7 @@ code {{ color: #38bdf8; }}
- </head>
- <body>
- <div class="topbar">
--  <h1>Sentinel-X — Security Operations Dashboard</h1>
-+  <h1>Sentinel-X — Security Operations Dashboard <span class="ver-pill">v{esc(__version__)}</span></h1>
-   <div class="nav">
-     <a href="/" class="active">SOC Dashboard</a>
-     <a href="/settings">ตั้งค่า API บริการภายนอก (API Settings)</a>
-@@ -264,12 +267,13 @@ code {{ color: #38bdf8; }}
- <html lang="th">
- <head>
- <meta charset="utf-8">
--<title>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
-+<title>Sentinel-X v{esc(__version__)} — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
- <style>
- *, *::before, *::after {{ box-sizing: border-box; }}
- body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
- .topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
--.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
-+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }}
-+.ver-pill {{ font-size: 0.8rem; background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }}
- .nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
- .nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
- .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
-@@ -301,7 +305,7 @@ button {{ padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight
- </head>
- <body>
- <div class="topbar">
--  <h1>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings)</h1>
-+  <h1>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings) <span class="ver-pill">v{esc(__version__)}</span></h1>
-   <div class="nav">
-     <a href="/">SOC Dashboard</a>
-     <a href="/settings" class="active">ตั้งค่า API บริการภายนอก (API Settings)</a>
-diff --git a/sentinel_x/security/release_protection/inventory.py b/sentinel_x/security/release_protection/inventory.py
-index f5e6d8e..1741401 100644
---- a/sentinel_x/security/release_protection/inventory.py
-+++ b/sentinel_x/security/release_protection/inventory.py
-@@ -27,6 +27,7 @@ DEFAULT_EXCLUDED_DIRS: Set[str] = {
-     "logs",
-     "build",
-     "dist",
-+    "patches",
- }
- 
- DEFAULT_EXCLUDED_PATTERNS: List[str] = [
-diff --git a/sentinel_x/security/release_protection/scanner.py b/sentinel_x/security/release_protection/scanner.py
-index 993d614..28f9067 100644
---- a/sentinel_x/security/release_protection/scanner.py
-+++ b/sentinel_x/security/release_protection/scanner.py
-@@ -28,6 +28,7 @@ DEFAULT_SCAN_EXCLUDED_DIRS: Set[str] = {
-     "node_modules",
-     "build",
-     "dist",
-+    "patches",
- }
- 
- SAFE_PLACEHOLDER_MARKERS = (
 diff --git a/tests/test_api_settings_and_release_pkg.py b/tests/test_api_settings_and_release_pkg.py
-index bb35385..1c64916 100644
+index 1c64916..5b4e8d9 100644
 --- a/tests/test_api_settings_and_release_pkg.py
 +++ b/tests/test_api_settings_and_release_pkg.py
-@@ -21,7 +21,9 @@ from pathlib import Path
- from urllib.error import HTTPError
- from urllib.request import ProxyHandler, Request, build_opener
+@@ -230,6 +230,22 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
+                 continue
+             self.assertFalse(line.endswith("("), f"Found parenthesized block in apply_patch_windows.bat: {line}")
  
-+from scripts.build_exe import build_windows_pe_zipapp_exe
- from scripts.build_release_package import PROJECT_ROOT, build_all_release_packages
-+from scripts.release_patch import bump_semver, parse_semver, update_version_files
- from sentinel_x.core import AuditLogger, DatabaseManager, SentinelConfig
- from sentinel_x.dashboard import DashboardService, create_dashboard_http_server
- from sentinel_x.integrations import IntegrationRegistry
-@@ -191,6 +193,43 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
-                 self.assertTrue(fpath.is_file(), f"Missing expected release artifact: {fname}")
-                 self.assertGreater(fpath.stat().st_size, 0)
- 
-+    def test_patch_generator_and_windows_pe_zipapp_compiler(self) -> None:
-+        self.assertEqual(parse_semver("0.1.0"), (0, 1, 0))
-+        self.assertEqual(bump_semver("0.1.0", "patch"), "0.1.1")
-+        self.assertEqual(bump_semver("0.1.1", "minor"), "0.2.0")
-+        self.assertEqual(bump_semver("0.2.0", "major"), "1.0.0")
++    def test_vercel_official_website_assets_and_config(self) -> None:
++        vercel_cfg_path = PROJECT_ROOT / "vercel.json"
++        self.assertTrue(vercel_cfg_path.is_file())
++        vercel_cfg = json.loads(vercel_cfg_path.read_text(encoding="utf-8"))
++        self.assertEqual(vercel_cfg["outputDirectory"], "public")
 +
-+        with tempfile.TemporaryDirectory() as tmpdir:
-+            tmp_path = Path(tmpdir)
-+            mock_root = tmp_path / "proj"
-+            (mock_root / "sentinel_x").mkdir(parents=True, exist_ok=True)
-+            (mock_root / "sentinel_x" / "__init__.py").write_text('__version__ = "0.1.0"\n', encoding="utf-8")
-+            (mock_root / "pyproject.toml").write_text('[project]\nname = "sentinel-x"\nversion = "0.1.0"\n', encoding="utf-8")
++        for rel_file in ("public/index.html", "public/styles.css", "public/app.js", "public/version.json"):
++            fp = PROJECT_ROOT / rel_file
++            self.assertTrue(fp.is_file(), f"Missing official website file: {rel_file}")
++            self.assertGreater(fp.stat().st_size, 0)
 +
-+            changed = update_version_files(mock_root, "0.1.1")
-+            self.assertEqual(len(changed), 2)
-+            self.assertIn('__version__ = "0.1.1"', (mock_root / "sentinel_x" / "__init__.py").read_text(encoding="utf-8"))
-+            self.assertIn('version = "0.1.1"', (mock_root / "pyproject.toml").read_text(encoding="utf-8"))
-+
-+            exe_out = build_windows_pe_zipapp_exe(
-+                project_root=PROJECT_ROOT,
-+                dist_dir=tmp_path / "dist",
-+                work_dir=tmp_path / "work",
-+                exe_name="sentinel-x",
-+            )
-+            self.assertTrue(exe_out.is_file())
-+            raw_bytes = exe_out.read_bytes()
-+            self.assertEqual(raw_bytes[:2], b"MZ")
-+            self.assertIn(b"PE\x00\x00", raw_bytes[:512])
-+
-+        # Ensure scripts/apply_patch_windows.bat has zero multi-line parenthesized blocks
-+        bat_text = (PROJECT_ROOT / "scripts" / "apply_patch_windows.bat").read_text(encoding="utf-8")
-+        for raw_line in bat_text.splitlines():
-+            line = raw_line.strip()
-+            if not line or line.upper().startswith("REM"):
-+                continue
-+            self.assertFalse(line.endswith("("), f"Found parenthesized block in apply_patch_windows.bat: {line}")
++        index_html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
++        self.assertEqual(index_html.count("<h1"), 1)
++        self.assertIn('id="simulator"', index_html)
++        self.assertIn('id="anti-rea"', index_html)
 +
  
  if __name__ == "__main__":

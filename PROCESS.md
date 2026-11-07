@@ -6,16 +6,15 @@
 ---
 
 ## 1. Phase ปัจจุบัน
-- เพิ่งเสร็จสิ้น: **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE** `[COMPLETED]`
-- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 23/23 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
+- เพิ่งเสร็จสิ้น: **PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT** `[COMPLETED]`
+- สถานะปัจจุบัน: **`[COMPLETED]`** (พัฒนา ทดสอบ 24/24 tests และผ่าน Anti-REA Audit เรียบร้อยแล้ว)
 
 ## 2. งานที่กำลังทำ
-- ไม่มีงานค้าง (Phase 0 – Phase 10 เสร็จสมบูรณ์ 100%)
+- ไม่มีงานค้าง (Phase 0 – Phase 11 เสร็จสมบูรณ์ 100%)
 
 ## 3. ขั้นตอนล่าสุดที่เสร็จแล้ว
-- พัฒนา `scripts/release_patch.py` และ `scripts/apply_patch_windows.bat` สำหรับสร้างไฟล์ `.patch` (`patches/v*.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ให้พร้อมใช้งานทันทีใน Git, ปรับเลขเวอร์ชันอัตโนมัติ (`v0.1.1`) และ Push ขึ้น GitHub พร้อม Git Tag ใหม่ทุกครั้งที่ไฟล์มีการอัปเดต
-- เพิ่มฟังก์ชัน `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` ที่ใช้ `clang` + `llvm-dlltool` + `lld-link` สร้างไฟล์ `dist/sentinel-x.exe` แบบ Native 64-bit Windows PE32+ Console Executable พร้อมฝัง ZipApp ในไฟล์เดียว
-- แสดงป้ายเวอร์ชัน (`v0.1.1`) บนหัวหน้าเว็บ `/` และ `/settings` รวมถึงคำสั่ง `sentinel-x --version`
+- พัฒนาหน้าเว็บ Official Website ของ Sentinel-X สำหรับ Deploy บน Vercel (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `vercel.json`)
+- เชื่อมต่อ `scripts/release_patch.py` ให้อัปเดต `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (`v0.1.2`) พร้อมคอมไพล์ `dist/sentinel-x.exe` และ Push ขึ้น GitHub
 
 ## 4. สถานะการ Implement
 - โครงสร้างเอกสารและไฟล์ตั้งค่าความปลอดภัยพื้นฐาน: **100% (เสร็จแล้ว)**
@@ -23,27 +22,27 @@
 - `sentinel_x/ingestion/`, `detection/`, `incidents/`, `reporting/`, `integrations/`, `dashboard/` (Core SOC + Phase 7 Extensions + Phase 9 API Settings UI): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/security/release_protection/` (Anti-REA): **100% (เสร็จแล้วและทดสอบผ่าน)**
 - `sentinel_x/platform.py` & `sentinel_x/cli.py` (Integration): **100% (เสร็จแล้วและทดสอบผ่าน)**
-- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator & GitHub Release / Packages Pipeline: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
+- Release Preparation, Pre-Compiled Windows `.exe` Build Pipeline, Patch Generator, GitHub Release / Packages & Vercel Official Website: **100% (เสร็จแล้วและตรวจสอบผ่าน)**
 
 ## 5. ไฟล์ที่สร้างหรือแก้ไข
-- สร้างใหม่ใน Phase 10:
+- สร้างใหม่ใน Phase 11:
+  - `public/index.html`
+  - `public/styles.css`
+  - `public/app.js`
+  - `public/version.json`
+  - `vercel.json`
+  - `patches/v0.1.2.patch`
+- แก้ไขใน Phase 11:
   - `scripts/release_patch.py`
-  - `scripts/apply_patch_windows.bat`
-  - `patches/v0.1.1.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`
-  - `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, `dist/build_manifest.json`
-- แก้ไขใน Phase 10:
-  - `scripts/build_exe.py`
-  - `sentinel_x/cli.py`
-  - `sentinel_x/dashboard/server.py`
-  - `sentinel_x/security/release_protection/scanner.py`, `sentinel_x/security/release_protection/inventory.py`
-  - `.gitignore`, `README.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+  - `tests/test_api_settings_and_release_pkg.py`
+  - `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 
 ## 6. การเปลี่ยนแปลงสำคัญของโค้ด
-- เพิ่มระบบ `scripts/release_patch.py` ที่ทำหน้าที่รวบขั้นตอนทั้งหมดเมื่อมีการแก้ไขไฟล์: ปรับเลขเวอร์ชัน -> ตรวจ Anti-REA -> สร้างไฟล์ `.patch` -> คอมไพล์ `dist/sentinel-x.exe` ให้เสร็จ -> สร้าง Release Packages -> Commit & Push ขึ้น GitHub พร้อม Tag เวอร์ชันใหม่
+- เพิ่มโฟลเดอร์ `public/` และ `vercel.json` สำหรับให้ Vercel ดึงไป Deploy เป็นหน้าเว็บ Official ของ Sentinel-X ได้ทันทีจาก GitHub Repository `lastmy2557-png/Sentinel-X` โดยอัปเดตเวอร์ชันตาม Patch ล่าสุด (`v0.1.2`) อัตโนมัติ
 
 ## 7. Tests ที่รันและผลลัพธ์จริง
 - คำสั่ง: `python3 -m unittest discover -s tests -p "test_*.py" -v`
-- ผลลัพธ์: `Ran 23 tests — OK`
+- ผลลัพธ์: `Ran 24 tests — OK`
 - คำสั่ง Anti-REA Audit: `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown`
 - ผลลัพธ์: `Overall Audit Status: PASSED` (`Total Findings: 0`)
 
@@ -55,14 +54,14 @@
 
 ## 10. คำสั่งหรือขั้นตอนที่ต้องใช้ทำงานต่อ
 ```bash
-# รันชุดทดสอบทั้งหมด (23 tests)
+# รันชุดทดสอบทั้งหมด (24 tests)
 python3 -m unittest discover -s tests -p "test_*.py" -v
-# ทุกครั้งที่อัปเดตไฟล์: สร้าง .patch, คอมไพล์ dist/sentinel-x.exe, ปรับเวอร์ชัน และ Push ขึ้น GitHub
+# ทุกครั้งที่อัปเดตไฟล์: สร้าง .patch, คอมไพล์ dist/sentinel-x.exe, ซิงค์หน้าเว็บ Vercel, ปรับเวอร์ชัน และ Push ขึ้น GitHub
 python3 scripts/release_patch.py --bump patch --summary "คำอธิบายการอัปเดต" --commit-and-push
 ```
 
 ## 11. งานถัดไปที่ต้องทำอย่างชัดเจน
-1. ระบบทั้งหมดใน Phase 0–10 เสร็จสมบูรณ์และพร้อมใช้งานจริง เมื่อมีการแก้ไขไฟล์ครั้งต่อไปสามารถรัน `python3 scripts/release_patch.py --bump patch --summary "..." --commit-and-push` ได้ทันที
+1. ระบบทั้งหมดใน Phase 0–11 เสร็จสมบูรณ์และพร้อม Import เข้า Vercel จาก GitHub Repository `lastmy2557-png/Sentinel-X` ได้ทันที
 
 ## 12. การตัดสินใจทางเทคนิค
 - เลือกใช้ SQLite แบบ WAL mode ร่วมกับ Parameterized SQL เพื่อความปลอดภัยและประสิทธิภาพสูงสุดในการทำงานแบบ Local-first

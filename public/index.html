@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentinel-X — Official Cybersecurity, SOC &amp; Anti-REA Platform</title>
+  <meta name="description" content="Sentinel-X แพลตฟอร์ม Security Operations Center (SOC), ตรวจจับภัยคุกคามด้วยฐานข้อมูลทางการ MITRE ATT&amp;CK &amp; Sigma, จัดการ Incident Response, เชื่อมต่อ API ภายนอก และตรวจสอบความสมบูรณ์ของซอฟต์แวร์ด้วยโมดูล Anti-REA (RFC 8032 Ed25519)">
+  <meta property="og:title" content="Sentinel-X — Official Cybersecurity, SOC &amp; Anti-REA Platform">
+  <meta property="og:description" content="Local-first Security Operations Center, Official MITRE ATT&amp;CK Detection Engine, External API Connectors, and Cryptographic Release Protection (Anti-REA).">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Sticky Top Navigation -->
+  <header class="site-header" id="site-header">
+    <div class="container nav-bar">
+      <a href="#hero" class="brand-link" id="nav-brand-link">
+        <span class="brand-mark">SX</span>
+        <span>SENTINEL-X</span>
+        <span class="version-tag" data-live-version>v0.1.2</span>
+      </a>
+
+      <nav class="nav-links" aria-label="เมนูหลัก">
+        <a href="#simulator" id="nav-link-simulator">ทดลองตรวจจับ (Live Simulator)</a>
+        <a href="#capabilities" id="nav-link-capabilities">สถาปัตยกรรม SOC</a>
+        <a href="#integrations" id="nav-link-integrations">การเชื่อมต่อ API ภายนอก</a>
+        <a href="#anti-rea" id="nav-link-antirea">Anti-REA Release Protection</a>
+        <a href="#releases" id="nav-link-releases">ดาวน์โหลด &amp; Patch</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/lastmy2557-png/Sentinel-X" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="nav-btn-github">
+          GitHub Repository
+        </a>
+        <a href="/downloads/sentinel-x.exe" class="btn btn-primary btn-sm" id="nav-btn-download">
+          ดาวน์โหลด .EXE (Windows x64)
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+      <div class="container hero-layout">
+        <div>
+          <div class="hero-eyebrow">LOCAL-FIRST CYBERSECURITY · SOC · ANTI-REA PLATFORM</div>
+          <h1 class="hero-title">
+            ปฏิบัติการตรวจจับภัยคุกคามตามมาตรฐาน MITRE ATT&amp;CK และปกป้องความสมบูรณ์ของซอฟต์แวร์ระดับองค์กร
+          </h1>
+          <p class="hero-lead">
+            <strong>Sentinel-X</strong> รวมศูนย์การจัดการ Security Logs, Real-time UDP Syslog, กฎตรวจจับ Sigma &amp; MITRE ATT&amp;CK, ระบบบริหารจัดการ Incident Response, หน้าตั้งค่าเชื่อมต่อ API บริการภายนอก (SIEM / EDR / Threat Intel / SOAR) และโมดูล <strong>Anti-REA</strong> สำหรับลงนามดิจิทัล <code>RFC 8032 Ed25519</code> ไว้ในแพลตฟอร์มเดียวที่ทำงานได้ทันทีโดยไม่ต้องพึ่งพา Cloud ภายนอก
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="/downloads/sentinel-x.exe" class="btn btn-primary" id="hero-btn-download-exe">
+              ดาวน์โหลด sentinel-x.exe (<span data-live-version>v0.1.2</span> — คอมไพล์เสร็จพร้อมรัน)
+            </a>
+            <a href="/downloads/latest.patch" class="btn btn-secondary" id="hero-btn-download-patch">
+              ดาวน์โหลดไฟล์ Patch ล่าสุด (.patch)
+            </a>
+            <a href="https://github.com/lastmy2557-png/Sentinel-X/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="hero-btn-releases">
+              GitHub Releases &amp; Packages
+            </a>
+          </div>
+
+          <div class="integrity-strip">
+            <div class="integrity-row">
+              <strong>SHA-256 Checksum (<code>dist/sentinel-x.exe</code>):</strong>
+              <span>Verified by Anti-REA Audit (0 Findings)</span>
+            </div>
+            <div class="integrity-hash" id="live-exe-sha256">
+              289925a6365f219156676d1e91584b3db70eec289a4bb228557a89f705381d31
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick-Start Interactive Terminal -->
+        <aside class="terminal-panel" aria-label="ตัวอย่างคำสั่งเริ่มต้นใช้งาน">
+          <div class="terminal-topbar">
+            <div class="terminal-tabs" role="tablist">
+              <button type="button" class="term-tab active" data-tab="windows_exe" id="tab-windows-exe">Windows (.exe)</button>
+              <button type="button" class="term-tab" data-tab="python_cli" id="tab-python-cli">Python CLI</button>
+              <button type="button" class="term-tab" data-tab="docker_ghcr" id="tab-docker-ghcr">Docker (GHCR)</button>
+              <button type="button" class="term-tab" data-tab="anti_rea" id="tab-anti-rea">Anti-REA Sign</button>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-terminal">
+              คัดลอกคำสั่ง (Copy)
+            </button>
+          </div>
+          <pre class="terminal-body"><code id="hero-terminal-code"># 1. ดึงโค้ดหรืออัปเดต Patch พร้อมรับไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้ว
+git clone https://github.com/lastmy2557-png/Sentinel-X.git
+cd Sentinel-X
+scripts\apply_patch_windows.bat
+
+# 2. เปิดใช้งาน SOC Dashboard (/) และหน้าตั้งค่า API บริการภายนอก (/settings)
+dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080</code></pre>
+          <div class="terminal-footer">
+            <span>Local-first HTTP Server: <code>http://127.0.0.1:8080</code></span>
+            <span>API Settings UI: <code>http://127.0.0.1:8080/settings</code></span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Engineering Metrics Bar -->
+    <section class="metrics-bar" aria-label="ตัวชี้วัดทางวิศวกรรม">
+      <div class="container metrics-grid">
+        <div class="metric-item">
+          <div class="metric-value">23 / 23 PASS</div>
+          <div class="metric-label">ชุดทดสอบอัตโนมัติ (Unit &amp; End-to-End Integration Tests)</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">MITRE ATT&amp;CK</div>
+          <div class="metric-label">เชื่อมโยงรหัส Technique ID, Tactic และหลักฐานตรวจจับจริง</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">RFC 8032 Ed25519</div>
+          <div class="metric-label">ลงนามและตรวจสอบ Release Manifest โดยไม่พึ่งไลบรารีภายนอก</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">5 Connectors</div>
+          <div class="metric-label">หน้าตั้งค่า API ภายนอกพร้อมระบบ Secret Masking ในตัว</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Threat Detection & MITRE ATT&CK Simulator -->
+    <section class="section" id="simulator">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker">INTERACTIVE DETECTION ENGINE SIMULATOR</div>
+          <h2 class="section-title">จำลองการตรวจจับภัยคุกคามและแปลง Log เป็น MITRE ATT&amp;CK แบบเรียลไทม์</h2>
+          <p class="section-desc">
+            เลือกเหตุการณ์จำลองด้านล่าง หรือพิมพ์ข้อความ Raw Log ของคุณเองเพื่อดูผลลัพธ์การแปลงเป็น <code>NormalizedSecurityEvent</code> (UTC ISO-8601) และการแจ้งเตือนพร้อมรหัส MITRE ATT&amp;CK
+          </p>
+        </div>
+
+        <div class="simulator-container">
+          <div class="scenario-buttons">
+            <button type="button" class="scenario-btn active" data-scenario="ssh_bruteforce" id="btn-scen-ssh">
+              1. SSH Brute Force (T1110.001)
+            </button>
+            <button type="button" class="scenario-btn" data-scenario="sudo_escalation" id="btn-scen-sudo">
+              2. Sudo Escalation (T1548.003)
+            </button>
+            <button type="button" class="scenario-btn" data-scenario="webshell_upload" id="btn-scen-webshell">
+              3. Web Shell Upload (T1505.003)
+            </button>
+            <button type="button" class="scenario-btn" data-scenario="reverse_shell" id="btn-scen-revshell">
+              4. Reverse Shell (T1059.004)
+            </button>
+          </div>
+
+          <div class="sim-input-group">
+            <input
+              type="text"
+              class="sim-input"
+              id="sim-raw-input"
+              aria-label="Raw Security Log Input"
+              placeholder="วางข้อความ Log เช่น Failed password for invalid user admin from 203.0.113.55..."
+            >
+            <button type="button" class="btn btn-primary" id="btn-run-simulation">
+              วิเคราะห์ Log ทันที (Evaluate Log)
+            </button>
+          </div>
+
+          <div class="sim-results-grid">
+            <div class="sim-pane">
+              <div class="sim-pane-header">
+                <span>1. Normalized Security Event (UTC ISO-8601)</span>
+                <code>sentinel_x.ingestion.normalizer</code>
+              </div>
+              <pre class="sim-pre" id="sim-normalized-output"></pre>
+            </div>
+
+            <div class="sim-pane">
+              <div class="sim-pane-header">
+                <span>2. Detection Alert &amp; Official MITRE ATT&amp;CK Mapping</span>
+                <span class="severity-pill sev-HIGH" id="sim-severity-badge">HIGH · T1110.001</span>
+              </div>
+              <pre class="sim-pre" id="sim-alert-output"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core SOC & Architecture Capabilities -->
+    <section class="section" id="capabilities">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker">MODULAR ARCHITECTURE</div>
+          <h2 class="section-title">สถาปัตยกรรม 6 โมดูลหลักที่แยกส่วนชัดเจนและตรวจสอบได้จริง</h2>
+          <p class="section-desc">
+            ออกแบบด้วยหลักการ Secure by Design และ Defense in Depth โดยแยกชั้นการรับข้อมูล การตรวจจับ การจัดการเหตุการณ์ และโมดูลคุ้มครอง Release ออกจากกันอย่างอิสระ
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 01 · sentinel_x/ingestion/</div>
+              <h3>Multi-Format Log Ingestion &amp; UDP Syslog</h3>
+              <p>รองรับการอ่าน แปลง และจัดหมวดหมู่ข้อมูล Log หลายรูปแบบ พร้อมเซิร์ฟเวอร์รับ Syslog แบบ Real-time ผ่าน UDP</p>
+            </div>
+            <ul class="feature-list">
+              <li>รองรับ JSON, Syslog RFC3164/ISO, Linux Auth/SSH/Sudo, Apache/Nginx Access Logs</li>
+              <li>ทำ Event Correlation ตาม <code>source_ip</code>, <code>user</code>, หรือ <code>source_host</code></li>
+              <li>ป้องกัน Path Traversal ด้วย <code>Path.resolve()</code> และจำกัดขนาดไฟล์สูงสุด</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 02 · sentinel_x/detection/</div>
+              <h3>MITRE ATT&amp;CK &amp; Sigma Rule Engine</h3>
+              <p>ประมวลผลกฎตรวจจับทั้งแบบเหตุการณ์เดี่ยว (Single-event) และแบบนับความถี่ตามช่วงเวลา (Time-window Correlation)</p>
+            </div>
+            <ul class="feature-list">
+              <li>ตรวจสอบความถูกต้องกับฐานข้อมูลทางการของ MITRE ATT&amp;CK (Technique ID &amp; Tactic)</li>
+              <li>นำเข้ากฎมาตรฐาน <strong>Sigma YAML</strong> พร้อมตัวแปร Fallback แบบ Pure-Python</li>
+              <li>แนบคำอธิบายสาเหตุ (Explanation) และหลักฐาน (Event Evidence) ทุก Alert</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 03 · sentinel_x/incidents/ &amp; reporting/</div>
+              <h3>Incident Response &amp; Multi-Format Reporting</h3>
+              <p>บริหารจัดการวงจรชีวิตของ Incident ตั้งแต่การเปิดเคส บันทึกการสอบสวน ผูกหลักฐาน ไปจนถึงการส่งออกรายงาน</p>
+            </div>
+            <ul class="feature-list">
+              <li>สถานะมาตรฐาน <code>OPEN</code>, <code>INVESTIGATING</code>, <code>CONTAINED</code>, <code>RESOLVED</code>, <code>CLOSED</code></li>
+              <li>สร้าง <code>Incident Timeline</code> อัตโนมัติพร้อมบันทึกลง Security Audit Log</li>
+              <li>ส่งออกรายงานเป็น <strong>JSON</strong>, <strong>Markdown</strong>, และ <strong>HTML</strong> (ป้องกัน XSS ทุกจุด)</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 04 · sentinel_x/dashboard/</div>
+              <h3>Local-First SOC Dashboard &amp; REST API</h3>
+              <p>เว็บอินเทอร์เฟซและ REST API แบบ Multi-threaded ที่ดึงข้อมูลจริงจากฐานข้อมูล SQLite ท้องถิ่นโดยตรง</p>
+            </div>
+            <ul class="feature-list">
+              <li>แยกข้อมูลจริง (<code>REAL</code>) ออกจากข้อมูลตัวอย่าง (<code>SAMPLE</code>) อย่างโปร่งใส</li>
+              <li>รองรับการยืนยันตัวตน API ด้วย <code>SENTINEL_API_TOKEN</code> แบบ Constant-time (<code>hmac.compare_digest</code>)</li>
+              <li>ใช้ Parameterized SQL Queries 100% เพื่อป้องกัน SQL Injection</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 05 · sentinel_x/security/release_protection/</div>
+              <h3>Anti-REA Release Integrity &amp; Hardening</h3>
+              <p>โมดูลแยกอิสระสำหรับตรวจจับการดัดแปลงไฟล์ (Tamper Detection), ลงนามดิจิทัล และสแกนหาข้อมูลอ่อนไหวก่อนส่งมอบ</p>
+            </div>
+            <ul class="feature-list">
+              <li>คำนวณ SHA-256 File Inventory ของทุกไฟล์ใน Release</li>
+              <li>ลงนามและตรวจสอบ <strong>Signed Release Manifest</strong> ด้วย <code>Ed25519</code> (External Key เท่านั้น)</li>
+              <li>สแกนหา Private Keys, AWS/GitHub/Slack Tokens, <code>.env</code>, Debug Artifacts และ Source Maps</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div>
+              <div class="feature-meta">MODULE 06 · scripts/release_patch.py</div>
+              <h3>Automated Patch &amp; Pre-Compiled .EXE Pipeline</h3>
+              <p>ระบบอัตโนมัติสำหรับสร้างไฟล์ <code>.patch</code>, คอมไพล์ <code>dist/sentinel-x.exe</code> และอัปเดตเลขเวอร์ชันขึ้น GitHub</p>
+            </div>
+            <ul class="feature-list">
+              <li>สร้างไฟล์ <code>patches/v*.patch</code>, <code>patches/latest.patch</code>, และ <code>PATCH_MANIFEST.json</code></li>
+              <li>คอมไพล์ไฟล์ <code>dist/sentinel-x.exe</code> เสร็จสมบูรณ์พร้อมใช้งานทันทีหลัง <code>git pull</code></li>
+              <li>เผยแพร่แพ็กเกจ <code>.whl</code>, <code>.tar.gz</code>, <code>.zip</code> และ Container ขึ้น <code>ghcr.io</code></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Customer External API Integrations Section -->
+    <section class="section" id="integrations">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker">CUSTOMER API INTEGRATIONS (/SETTINGS)</div>
+          <h2 class="section-title">หน้าตั้งค่าการเชื่อมต่อ API บริการภายนอกสำหรับลูกค้าองค์กร</h2>
+          <p class="section-desc">
+            ผู้ดูแลระบบสามารถตั้งค่าและกดทดสอบการเชื่อมต่อจริง (Live HTTP Reachability Probe) กับระบบภายนอกทั้ง 5 หมวดหมู่ผ่านหน้าเว็บ <code>http://127.0.0.1:8080/settings</code> โดยระบบจะบันทึกค่าลงฐานข้อมูล SQLite และซ่อนรหัส API Key (<code>••••••••xxxx</code>) เสมอ
+          </p>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>รหัส Connector</th>
+                <th>หมวดหมู่บริการ</th>
+                <th>ระบบและผู้ให้บริการที่รองรับ</th>
+                <th>มาตรฐานความปลอดภัย</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>siem_forwarder</code></td>
+                <td><strong>SIEM Platform Forwarder</strong></td>
+                <td>Splunk Enterprise HEC, Elastic SIEM, Microsoft Sentinel, IBM QRadar</td>
+                <td>Bearer Auth + Masked API Key + Schema <code>sentinel_x.siem.v1</code></td>
+              </tr>
+              <tr>
+                <td><code>edr_controller</code></td>
+                <td><strong>EDR Endpoint Controller</strong></td>
+                <td>CrowdStrike Falcon, Microsoft Defender for Endpoint, SentinelOne</td>
+                <td>Host Isolation Action Verification + Audit Trail Logging</td>
+              </tr>
+              <tr>
+                <td><code>threat_intel_feed</code></td>
+                <td><strong>Threat Intelligence Feed</strong></td>
+                <td>VirusTotal, AbuseIPDB, MISP, AlienVault OTX</td>
+                <td>IOC Lookup (IP / Domain / SHA-256) + Secret Redaction</td>
+              </tr>
+              <tr>
+                <td><code>webhook_notifier</code></td>
+                <td><strong>Webhook / ChatOps Alert Notifier</strong></td>
+                <td>Slack Incoming Webhooks, Microsoft Teams, Discord, PagerDuty</td>
+                <td>Strict <code>http://</code> &amp; <code>https://</code> Validation + Live Probe</td>
+              </tr>
+              <tr>
+                <td><code>external_security_tool</code></td>
+                <td><strong>External Security Tool / SOAR</strong></td>
+                <td>TheHive, Cortex XSOAR, Jira Service Management, Shuffle SOAR</td>
+                <td>Case &amp; Playbook Dispatch + Persistent SQLite Storage</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Anti-REA Release Protection Section -->
+    <section class="section" id="anti-rea">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker">ANTI-REA · RELEASE PROTECTION ARCHITECTURE</div>
+          <h2 class="section-title">การยืนยันความสมบูรณ์ของซอฟต์แวร์ด้วยลายเซ็นดิจิทัล Ed25519 และการป้องกันการดัดแปลงไฟล์</h2>
+          <p class="section-desc">
+            ไม่มีซอฟต์แวร์ใดสามารถรับประกันการป้องกัน Reverse Engineering ได้ 100% โมดูล <strong>Anti-REA</strong> ของ Sentinel-X จึงมุ่งเน้นมาตรการทางวิศวกรรมที่พิสูจน์ผลได้จริง ได้แก่ การตรวจจับการแก้ไขไฟล์โดยไม่ได้รับอนุญาต (Tamper Detection), การลงนาม Release Manifest ด้วยกุญแจภายนอก และการสแกนป้องกันข้อมูลความลับรั่วไหลก่อนเผยแพร่
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="release-card">
+            <h3>1. Pre-Release Security Audit</h3>
+            <p class="section-desc">สแกนทุกไฟล์ในโปรเจกต์เพื่อตรวจหา Hardcoded Secrets, ไฟล์กุญแจ <code>.pem/.key</code>, <code>.env</code>, Debug Artifacts, Source Maps และคำสั่ง <code>shell=True</code></p>
+            <div class="hash-box">python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown</div>
+          </div>
+
+          <div class="release-card">
+            <h3>2. RFC 8032 Ed25519 Manifest Signing</h3>
+            <p class="section-desc">คำนวณ SHA-256 ของทุกไฟล์ใน Release และลงนามดิจิทัลด้วยกุญแจส่วนตัวที่เก็บไว้นอก Repository (เข้ากันได้กับ OpenSSL 3.0 100%)</p>
+            <div class="hash-box">python3 -m sentinel_x.security.release_protection.cli sign --root . --private-key /path/to/rel.key --output release_manifest.json</div>
+          </div>
+
+          <div class="release-card">
+            <h3>3. Tamper Detection &amp; Verification</h3>
+            <p class="section-desc">ตรวจสอบทั้งลายเซ็นดิจิทัล Ed25519 และค่า SHA-256 ของทุกไฟล์ หากไฟล์ถูกแก้ไข ลบ หรือเพิ่มเข้ามาโดยไม่ได้รับอนุญาต ระบบจะแจ้งเตือนทันที</p>
+            <div class="hash-box">python3 -m sentinel_x.security.release_protection.cli verify --root . --manifest release_manifest.json --public-key /path/to/rel_public.pem</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Release & Patch Center -->
+    <section class="section" id="releases">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-kicker">RELEASE &amp; PATCH CENTER</div>
+          <h2 class="section-title">ดาวน์โหลดไฟล์ติดตั้ง แพ็กเกจ และระบบอัปเดต Patch อัตโนมัติ (<span data-live-version>v0.1.2</span>)</h2>
+          <p class="section-desc">
+            ทุกครั้งที่มีการอัปเดตโค้ด ระบบจะสร้างไฟล์ <code>.patch</code>, คอมไพล์ <code>dist/sentinel-x.exe</code> ให้เสร็จสมบูรณ์ และปรับเลขเวอร์ชันบน GitHub โดยอัตโนมัติ
+          </p>
+        </div>
+
+        <div class="release-grid">
+          <div class="release-card">
+            <h3>Windows Standalone Executable (<code>.exe</code>)</h3>
+            <p class="section-desc">ไฟล์ <code>sentinel-x.exe</code> สำหรับ Windows 64-bit (PE32+) ที่คอมไพล์เสร็จแล้วพร้อมรันทันทีทั้งโหมดดับเบิลคลิกเปิดเว็บและโหมด CLI</p>
+            <div class="hash-box" id="release-exe-sha256">SHA-256: 289925a6365f219156676d1e91584b3db70eec289a4bb228557a89f705381d31</div>
+            <a href="/downloads/sentinel-x.exe" class="btn btn-primary btn-sm" id="card-btn-download-exe">ดาวน์โหลด sentinel-x.exe</a>
+          </div>
+
+          <div class="release-card">
+            <h3>Official Git Patch (<code>patches/latest.patch</code>)</h3>
+            <p class="section-desc">ไฟล์ Unified Diff Patch สำหรับตรวจสอบการเปลี่ยนแปลงหรืออัปเดตผ่าน <code>scripts\apply_patch_windows.bat</code> และ <code>git apply</code></p>
+            <div class="hash-box" id="release-patch-sha256">SHA-256: 8f4789cd9a34cc75cf7a2c460a23cd0184b07b9782f5c0a328ee6f40251c41e7</div>
+            <a href="/downloads/latest.patch" class="btn btn-secondary btn-sm" id="card-btn-download-patch">ดาวน์โหลด latest.patch</a>
+          </div>
+
+          <div class="release-card">
+            <h3>GitHub Packages &amp; Python Wheel</h3>
+            <p class="section-desc">รองรับการติดตั้งผ่าน Container Registry (<code>ghcr.io/lastmy2557-png/sentinel-x</code>) และไฟล์ <code>.whl</code> / <code>.tar.gz</code> บน GitHub Releases</p>
+            <div class="hash-box">docker pull ghcr.io/lastmy2557-png/sentinel-x:latest</div>
+            <a href="https://github.com/lastmy2557-png/Sentinel-X/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="card-btn-gh-releases">เปิดหน้า GitHub Releases</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>SENTINEL-X</strong> (<span data-live-version>v0.1.2</span>) — Local-first Cybersecurity, SOC &amp; Anti-REA Release Protection Platform.
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/lastmy2557-png/Sentinel-X" target="_blank" rel="noopener noreferrer" id="footer-link-repo">GitHub Repository</a>
+        <a href="https://github.com/lastmy2557-png/Sentinel-X/releases" target="_blank" rel="noopener noreferrer" id="footer-link-releases">Releases</a>
+        <a href="/downloads/sentinel-x.exe" id="footer-link-exe">Download .EXE</a>
+        <a href="/version.json" id="footer-link-version">version.json</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
