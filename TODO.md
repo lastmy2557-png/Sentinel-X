@@ -67,6 +67,13 @@
   - [x] พัฒนาหน้าเว็บ Official Website (`public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`) พร้อมระบบจำลองการตรวจจับภัยคุกคามและแปลง Log เป็น MITRE ATT&CK แบบเรียลไทม์ (Live Simulator)
   - [x] สร้างไฟล์ `vercel.json` ตั้งค่า Zero-Config Deployment (`outputDirectory: "public"`), Security Headers และลิงก์ดาวน์โหลดตรง `/downloads/sentinel-x.exe` และ `/downloads/latest.patch`
   - [x] เชื่อมต่อ `scripts/release_patch.py` ให้ซิงค์เลขเวอร์ชันและค่า SHA-256 ลง `public/version.json` และ `public/index.html` อัตโนมัติทุกครั้งที่ออก Patch (ผ่านครบ 24/24 tests)
+- [x] **PHASE 12 — FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL (`https://sentinel-x-weld-tau.vercel.app/`)**:
+  - [x] อัปเกรดแถบนำทางด้านบนและส่วนท้ายให้สลับแท็บได้จริง (`แสดงทุกแท็บ`, `SOC Dashboard & เคส`, `ทดลองตรวจจับ (Live Simulator)`, `สถาปัตยกรรม SOC`, `การเชื่อมต่อ API ภายนอก`, `Anti-REA Release Protection`, `ดาวน์โหลด & Patch`) พร้อมรองรับ URL ตรง `/settings`, `/dashboard`, `/simulator`, `/anti-rea`, `/releases`
+  - [x] พัฒนาหน้า **SOC Dashboard & Incident Response** ให้ทำงานได้จริงบนเว็บ (นำเข้า Log, ตรวจจับ MITRE ATT&CK, กรองความรุนแรง, เปลี่ยนสถานะเคส, เพิ่มบันทึกการสอบสวน และดาวน์โหลดรายงาน JSON/Markdown/HTML)
+  - [x] พัฒนา **Sigma YAML Rule Studio** และตาราง **Official MITRE ATT&CK Catalog** ที่กดจำลองเหตุการณ์ได้ทุกเทคนิค
+  - [x] พัฒนาหน้า **ตั้งค่า API บริการภายนอก (`/settings`)** ให้กรอกค่า บันทึก ซ่อน API Key (`••••••••xxxx`) ทดสอบการเชื่อมต่อ และดูตัวอย่าง Payload ได้ครบทั้ง 5 บริการ
+  - [x] พัฒนา **Anti-REA Studio** สำหรับสแกนโค้ดหาช่องโหว่/ความลับรั่วไหล และจำลองการลงนามดิจิทัล `Ed25519` พร้อมจำลองการแอบแก้ไขไฟล์ (`TAMPER_DETECTED`)
+  - [x] พัฒนาเครื่องมือ **In-Browser SHA-256 File Verifier** (`crypto.subtle.digest`) และ **Live Patch Diff Viewer** (`/patches/latest.patch` & `/patches/PATCH_MANIFEST.json`)
 
 ---
 

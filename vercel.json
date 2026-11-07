@@ -7,12 +7,24 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/downloads/sentinel-x.exe",
-      "destination": "https://github.com/lastmy2557-png/Sentinel-X/raw/main/dist/sentinel-x.exe"
+      "source": "/settings",
+      "destination": "/index.html"
     },
     {
-      "source": "/downloads/latest.patch",
-      "destination": "https://github.com/lastmy2557-png/Sentinel-X/raw/main/patches/latest.patch"
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/simulator",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/anti-rea",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/releases",
+      "destination": "/index.html"
     }
   ],
   "headers": [

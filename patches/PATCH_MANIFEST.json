@@ -1,18 +1,28 @@
 {
   "schema": "sentinel_x.patch_manifest.v1",
-  "latest_version": "0.1.2",
-  "latest_tag": "v0.1.2",
+  "latest_version": "0.1.3",
+  "latest_tag": "v0.1.3",
   "latest_patch": {
-    "from_version": "0.1.1",
-    "to_version": "0.1.2",
-    "tag": "v0.1.2",
-    "patch_file": "patches/v0.1.2.patch",
-    "patch_sha256": "57e1e57515db8dce349e20312b2a0c237136c3ec9abd8b3de425e3943f4528a5",
-    "patch_size_bytes": 28073,
-    "summary": "Add Official Sentinel-X Website for Vercel deployment (public/ & vercel.json) and sync version metadata",
-    "generated_at": "2026-11-07T13:20:55.987527+00:00"
+    "from_version": "0.1.2",
+    "to_version": "0.1.3",
+    "tag": "v0.1.3",
+    "patch_file": "patches/v0.1.3.patch",
+    "patch_sha256": "74791eef6ab2c8f2589b4b726261734a4d38f41d3a1b3c7284665ec3b6bfe096",
+    "patch_size_bytes": 230371,
+    "summary": "Make all Official Website tabs 100% interactive (SOC Dashboard, Sigma Studio, API Settings, Anti-REA Studio, SHA-256 Verifier)",
+    "generated_at": "2026-11-07T15:39:15.067837+00:00"
   },
   "history": [
+    {
+      "from_version": "0.1.2",
+      "to_version": "0.1.3",
+      "tag": "v0.1.3",
+      "patch_file": "patches/v0.1.3.patch",
+      "patch_sha256": "74791eef6ab2c8f2589b4b726261734a4d38f41d3a1b3c7284665ec3b6bfe096",
+      "patch_size_bytes": 230371,
+      "summary": "Make all Official Website tabs 100% interactive (SOC Dashboard, Sigma Studio, API Settings, Anti-REA Studio, SHA-256 Verifier)",
+      "generated_at": "2026-11-07T15:39:15.067837+00:00"
+    },
     {
       "from_version": "0.1.1",
       "to_version": "0.1.2",

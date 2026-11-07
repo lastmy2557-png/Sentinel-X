@@ -29,6 +29,7 @@ DEFAULT_SCAN_EXCLUDED_DIRS: Set[str] = {
     "build",
     "dist",
     "patches",
+    "downloads",
 }
 
 SAFE_PLACEHOLDER_MARKERS = (

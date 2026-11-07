@@ -138,6 +138,8 @@ def generate_git_patch(
         ".",
         ":(exclude)dist",
         ":(exclude)patches",
+        ":(exclude)public/downloads",
+        ":(exclude)public/patches",
     ]
     diff_proc = subprocess.run(
         diff_cmd,
@@ -259,10 +261,12 @@ def execute_patch_release(
         version=new_version,
     )
 
-    # 6. Synchronize Vercel Official Website metadata (public/version.json & public/index.html)
+    # 6. Synchronize Vercel Official Website metadata and static downloadable assets
     public_dir = root / "public"
     if public_dir.is_dir():
         exe_meta = exe_build_result.get("build_manifest", {})
+        exe_sha = exe_meta.get("sha256", "")
+        patch_sha = patch_entry.get("patch_sha256", "")
         version_json_path = public_dir / "version.json"
         version_payload = {
             "platform": "Sentinel-X Cybersecurity & SOC Platform",
@@ -270,9 +274,9 @@ def execute_patch_release(
             "tag": f"v{new_version}",
             "exe_name": exe_meta.get("executable_name", "sentinel-x.exe"),
             "exe_size_bytes": exe_meta.get("size_bytes", 0),
-            "exe_sha256": exe_meta.get("sha256", ""),
+            "exe_sha256": exe_sha,
             "patch_file": patch_entry.get("patch_file", f"patches/v{new_version}.patch"),
-            "patch_sha256": patch_entry.get("patch_sha256", ""),
+            "patch_sha256": patch_sha,
             "github_repo": "https://github.com/lastmy2557-png/Sentinel-X",
             "github_release_url": f"https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v{new_version}",
             "ghcr_image": "ghcr.io/lastmy2557-png/sentinel-x:latest",
@@ -284,6 +288,27 @@ def execute_patch_release(
         )
         updated_version_files.append("public/version.json")
 
+        # Mirror downloadable artifacts into public/downloads and public/patches for Vercel CDN
+        pub_downloads = public_dir / "downloads"
+        pub_patches = public_dir / "patches"
+        pub_downloads.mkdir(parents=True, exist_ok=True)
+        pub_patches.mkdir(parents=True, exist_ok=True)
+
+        exe_src = out_dist / "sentinel-x.exe"
+        if exe_src.is_file():
+            (pub_downloads / "sentinel-x.exe").write_bytes(exe_src.read_bytes())
+        sums_src = out_dist / "SHA256SUMS.txt"
+        if sums_src.is_file():
+            (pub_downloads / "SHA256SUMS.txt").write_bytes(sums_src.read_bytes())
+        latest_patch_src = out_patches / "latest.patch"
+        if latest_patch_src.is_file():
+            patch_bytes = latest_patch_src.read_bytes()
+            (pub_downloads / "latest.patch").write_bytes(patch_bytes)
+            (pub_patches / "latest.patch").write_bytes(patch_bytes)
+        patch_manifest_src = out_patches / "PATCH_MANIFEST.json"
+        if patch_manifest_src.is_file():
+            (pub_patches / "PATCH_MANIFEST.json").write_bytes(patch_manifest_src.read_bytes())
+
         index_html_path = public_dir / "index.html"
         if index_html_path.is_file():
             html_content = index_html_path.read_text(encoding="utf-8")
@@ -292,6 +317,23 @@ def execute_patch_release(
                 rf'\g<1>v{new_version}\2',
                 html_content,
             )
+            if exe_sha:
+                html_content = re.sub(
+                    r'(id="live-exe-sha256">\s*)[0-9a-fA-F]{64}(\s*<)',
+                    rf'\g<1>{exe_sha}\2',
+                    html_content,
+                )
+                html_content = re.sub(
+                    r'(id="release-exe-sha256">SHA-256:\s*)[0-9a-fA-F]{64}(<)',
+                    rf'\g<1>{exe_sha}\2',
+                    html_content,
+                )
+            if patch_sha:
+                html_content = re.sub(
+                    r'(id="release-patch-sha256">SHA-256:\s*)[0-9a-fA-F]{64}(<)',
+                    rf'\g<1>{patch_sha}\2',
+                    html_content,
+                )
             index_html_path.write_text(html_content, encoding="utf-8")
             updated_version_files.append("public/index.html")
 

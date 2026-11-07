@@ -243,8 +243,19 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
 
         index_html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
         self.assertEqual(index_html.count("<h1"), 1)
-        self.assertIn('id="simulator"', index_html)
-        self.assertIn('id="anti-rea"', index_html)
+        for tab_key in ("all", "dashboard", "simulator", "capabilities", "integrations", "anti-rea", "releases"):
+            self.assertIn(f'data-tab-target="{tab_key}"', index_html)
+        for console_id in (
+            "soc-ingest-textarea",
+            "soc-alerts-tbody",
+            "soc-incidents-tbody",
+            "sigma-yaml-input",
+            "interactive-connectors-container",
+            "antirea-scan-input",
+            "ed25519-manifest-output",
+            "sha256-file-input",
+        ):
+            self.assertIn(f'id="{console_id}"', index_html)
 
 
 if __name__ == "__main__":

@@ -226,3 +226,27 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
 - **ปัญหาที่พบ:**
   - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.2`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub
+
+---
+
+## [2026-11-07] — PHASE 12 (FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL `v0.1.3`)
+
+- **งานที่ทำเสร็จ:**
+  - อัปเกรดหน้าเว็บ Official บน Vercel (`https://sentinel-x-weld-tau.vercel.app/`) ให้สามารถสลับและใช้งานได้จริงครบทุกแท็บ:
+    1. **แท็บ `แสดงทุกแท็บ (All)` & `ภาพรวม (Overview)`:** หน้าหลักพร้อม Quick-Start Terminal 4 โหมด และปุ่มคัดลอกคำสั่ง/SHA-256
+    2. **แท็บ `SOC Dashboard & เคส`:** คอนโซลนำเข้า Raw Logs หลายบรรทัด, แปลงเป็น `NormalizedSecurityEvent`, ประมวลผลกฎตรวจจับ MITRE ATT&CK, กรอง/ค้นหารายการแจ้งเตือน, เปลี่ยนสถานะเคส Incident, เพิ่มบันทึกการสอบสวน และดาวน์โหลดรายงานจริง (`.json`, `.md`, `.html`)
+    3. **แท็บ `ทดลองตรวจจับ (Live Simulator)`:** จำลองการโจมตี 6 รูปแบบพร้อมส่งเข้า SOC Dashboard, สตูดิโอแก้ไขและลงทะเบียนกฎ **Sigma YAML** และตารางสำรวจฐานข้อมูลทางการ **MITRE ATT&CK**
+    4. **แท็บ `สถาปัตยกรรม SOC`:** แสดงรายละเอียด 6 โมดูลหลักพร้อมปุ่มกดเชื่อมไปยังหน้าคอนโซลของแต่ละโมดูลโดยตรง
+    5. **แท็บ `การเชื่อมต่อ API ภายนอก (/settings)`:** ฟอร์มตั้งค่าจริงครบทั้ง 5 บริการ (`siem_forwarder`, `edr_controller`, `threat_intel_feed`, `webhook_notifier`, `external_security_tool`) พร้อมระบบซ่อน API Key (`••••••••xxxx`), ปุ่มบันทึก, ปุ่มทดสอบการเชื่อมต่อ, ปุ่มดูตัวอย่าง Payload และปุ่มเติมค่าตัวอย่าง
+    6. **แท็บ `Anti-REA Release Protection`:** เครื่องมือสแกนโค้ดหาความลับรั่วไหล/ช่องโหว่ก่อนปล่อยซอฟต์แวร์ (ดาวน์โหลดรายงาน `.md` ได้) และสตูดิโอจำลองการลงนามดิจิทัล `Ed25519` พร้อมปุ่มจำลองการแอบแก้ไขไฟล์ (`TAMPER_DETECTED`)
+    7. **แท็บ `ดาวน์โหลด & Patch`:** ปุ่มดาวน์โหลดตรง `/downloads/sentinel-x.exe`, `/downloads/latest.patch`, `/downloads/SHA256SUMS.txt`, เครื่องมือคำนวณและตรวจสอบค่า `SHA-256` ของไฟล์ในเบราว์เซอร์ (`WebCrypto SHA-256`) และหน้าต่างดูเนื้อหาไฟล์ `latest.patch` คู่กับประวัติใน `PATCH_MANIFEST.json`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - แก้ไข/สร้างใหม่: `public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `public/downloads/*`, `public/patches/*`, `vercel.json`, `scripts/release_patch.py`, `sentinel_x/security/release_protection/scanner.py`, `tests/test_api_settings_and_release_pkg.py`, `patches/v0.1.3.patch`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ให้ `scripts/release_patch.py` คัดลอก `sentinel-x.exe`, `SHA256SUMS.txt`, `latest.patch`, และ `PATCH_MANIFEST.json` ลงใน `public/downloads/` และ `public/patches/` โดยอัตโนมัติ เพื่อให้ Vercel เสิร์ฟไฟล์ดาวน์โหลดและแสดงผลเนื้อหา Patch จาก CDN เดียวกันโดยไม่ติด CORS
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.3`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub เพื่อให้ Vercel อัปเดต `https://sentinel-x-weld-tau.vercel.app/` อัตโนมัติ
