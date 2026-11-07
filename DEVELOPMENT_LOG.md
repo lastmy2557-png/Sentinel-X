@@ -150,10 +150,10 @@
   - แก้ไข: `.gitignore`, `README.md`, `docs/INSTALLATION.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 - **การตัดสินใจทางเทคนิค:**
   - ผสานการตรวจสอบ Anti-REA เข้าไปในขั้นตอน Pre-build ของ `scripts/build_exe.py` เพื่อป้องกันไม่ให้มีการแพ็กไฟล์ `.exe` หากตรวจพบ Secret หรือไฟล์ความลับหลงเหลืออยู่ในโฟลเดอร์โปรเจกต์
-  - แก้ไขไวยากรณ์ `scripts/build_windows.bat` ไม่ให้ใช้วงเล็บหลายบรรทัดใน `cmd.exe`, เพิ่มการค้นหา `openssl.exe` จาก Git for Windows ใน `manifest.py`, เพิ่ม Pure-Python Sigma YAML Parser Fallback ใน `sigma.py`, และเพิ่มระบบคอมไพล์ `.exe` ด้วย `csc.exe` ของ Windows สำหรับสภาพแวดล้อม `Python 3.14.2`
+  - แก้ไขไวยากรณ์ `scripts/build_windows.bat` ไม่ให้ใช้วงเล็บหลายบรรทัดใน `cmd.exe`, พัฒนา **Native RFC 8032 Ed25519 + RFC 8410 PEM** ใน `manifest.py` (เข้ากันได้กับ OpenSSL 3.0 100% โดยไม่ต้องเรียก `openssl.exe`), ปรับปรุง `SyslogUDPReceiver` และ `DatabaseManager` สำหรับ Windows, เพิ่ม Pure-Python Sigma YAML Parser Fallback ใน `sigma.py`, และเพิ่มระบบคอมไพล์ `.exe` ด้วย `csc.exe` ของ Windows สำหรับสภาพแวดล้อม `Python 3.14.2`
 - **Tests ที่รันและผลการทดสอบ:**
   - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 20/20 tests (`OK`)
-  - `python3 scripts/build_exe.py --dry-run` -> `DRY_RUN` (`audit_passed: true`)
+  - ทดสอบ Interoperability ระหว่าง RFC 8032 Ed25519 ใน `manifest.py` กับ `openssl pkeyutl -verify` -> `Signature Verified Successfully`
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`59 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
-  - แก้ไขปัญหา `... was unexpected at this time.` บน Windows `cmd.exe` เรียบร้อยแล้ว พร้อม Commit และ Push ขึ้น `origin/main`
+  - แก้ไขปัญหา `FAILED (failures=1, errors=2)` บน Windows เรียบร้อยแล้ว พร้อม Commit และ Push ขึ้น `origin/main`

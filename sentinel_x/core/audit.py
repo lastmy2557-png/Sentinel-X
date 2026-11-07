@@ -6,6 +6,7 @@ Sanitizes control characters to prevent log injection and writes JSON-Lines audi
 from __future__ import annotations
 
 import json
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,7 @@ class AuditLogger:
 
     def __init__(self, log_path: Path) -> None:
         self.log_path = log_path
+        self._lock = threading.Lock()
 
     def record(
         self,
@@ -43,7 +45,8 @@ class AuditLogger:
             "status": sanitize_log_field(status),
             "details": details or {},
         }
-        self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        with self.log_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        with self._lock:
+            self.log_path.parent.mkdir(parents=True, exist_ok=True)
+            with self.log_path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
         return entry

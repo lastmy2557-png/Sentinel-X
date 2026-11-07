@@ -6,7 +6,9 @@ Enforces WAL mode, foreign keys, and 100% parameterized SQL queries to prevent S
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
@@ -32,25 +34,27 @@ class DatabaseManager:
 
     def __init__(self, db_path: Path | str) -> None:
         self.db_path = Path(db_path)
+        self._lock = threading.RLock()
         if str(self.db_path) != ":memory:":
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_schema()
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
-        conn = sqlite3.connect(str(self.db_path), timeout=15.0)
-        conn.row_factory = sqlite3.Row
-        try:
-            conn.execute("PRAGMA foreign_keys = ON;")
-            if str(self.db_path) != ":memory:":
-                conn.execute("PRAGMA journal_mode = WAL;")
-            yield conn
-            conn.commit()
-        except sqlite3.Error as exc:
-            conn.rollback()
-            raise StorageError(f"Database operation failed: {exc}") from exc
-        finally:
-            conn.close()
+        with self._lock:
+            conn = sqlite3.connect(str(self.db_path), timeout=15.0)
+            conn.row_factory = sqlite3.Row
+            try:
+                conn.execute("PRAGMA foreign_keys = ON;")
+                if str(self.db_path) != ":memory:" and os.name != "nt":
+                    conn.execute("PRAGMA journal_mode = WAL;")
+                yield conn
+                conn.commit()
+            except sqlite3.Error as exc:
+                conn.rollback()
+                raise StorageError(f"Database operation failed: {exc}") from exc
+            finally:
+                conn.close()
 
     def _init_schema(self) -> None:
         schema_sql = """

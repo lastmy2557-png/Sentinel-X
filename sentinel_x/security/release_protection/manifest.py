@@ -12,13 +12,10 @@ import base64
 import hashlib
 import json
 import os
-import shutil
-import subprocess
-import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sentinel_x.core.exceptions import (
     ReleaseProtectionError,
@@ -35,143 +32,195 @@ ANTI_REA_SCOPE_STATEMENT = (
     "Artifact Exposure Reduction. No software can guarantee 100% prevention against reverse engineering."
 )
 
+# ==============================================================================
+# Standard RFC 8032 Ed25519 & RFC 8410 PKCS#8 / SPKI PEM Implementation
+# 100% interoperable with OpenSSL 3.0 Ed25519 keys and signatures, while running
+# natively across Windows, Linux, and macOS without requiring external binaries.
+# ==============================================================================
+_ED25519_P = (1 << 255) - 19
+_ED25519_L = (1 << 252) + 27742317777372353535851937790883648493
+_ED25519_D = (-121665 * pow(121666, _ED25519_P - 2, _ED25519_P)) % _ED25519_P
+_ED25519_I = pow(2, (_ED25519_P - 1) // 4, _ED25519_P)
 
-def _resolve_openssl_executable() -> str:
-    """
-    Locate the OpenSSL binary across Linux, macOS, and Windows.
-    On Windows, automatically checks Git for Windows and standard OpenSSL directories
-    if 'openssl' is not directly on PATH.
-    """
-    direct = shutil.which("openssl")
-    if direct:
-        return direct
+# RFC 8410 ASN.1 DER prefixes for Ed25519 (OID 1.3.101.112)
+_PKCS8_ED25519_PREFIX = bytes.fromhex("302e020100300506032b657004220420")
+_SPKI_ED25519_PREFIX = bytes.fromhex("302a300506032b6570032100")
 
-    if os.name == "nt":
-        candidates: List[Path] = []
-        git_bin = shutil.which("git")
-        if git_bin:
-            git_root = Path(git_bin).resolve().parent.parent
-            candidates.extend(
-                [
-                    git_root / "usr" / "bin" / "openssl.exe",
-                    git_root / "mingw64" / "bin" / "openssl.exe",
-                ]
-            )
-        for env_key, default_dir in (
-            ("ProgramFiles", r"C:\Program Files"),
-            ("ProgramFiles(x86)", r"C:\Program Files (x86)"),
-        ):
-            base = Path(os.environ.get(env_key, default_dir))
-            candidates.extend(
-                [
-                    base / "Git" / "usr" / "bin" / "openssl.exe",
-                    base / "Git" / "mingw64" / "bin" / "openssl.exe",
-                    base / "OpenSSL-Win64" / "bin" / "openssl.exe",
-                    base / "OpenSSL" / "bin" / "openssl.exe",
-                ]
-            )
-        for cand in candidates:
-            if cand.is_file():
-                return str(cand)
+ExtPoint = Tuple[int, int, int, int]
 
-    raise ReleaseProtectionError(
-        "OpenSSL executable not found. Please ensure OpenSSL or Git for Windows is installed."
-    )
+
+def _xrecover(y: int) -> int:
+    xx = (y * y - 1) * pow(_ED25519_D * y * y + 1, _ED25519_P - 2, _ED25519_P) % _ED25519_P
+    x = pow(xx, (_ED25519_P + 3) // 8, _ED25519_P)
+    if (x * x - xx) % _ED25519_P != 0:
+        x = (x * _ED25519_I) % _ED25519_P
+    if x % 2 != 0:
+        x = _ED25519_P - x
+    return x
+
+
+_BY = (4 * pow(5, _ED25519_P - 2, _ED25519_P)) % _ED25519_P
+_BX = _xrecover(_BY)
+_ED25519_BASE: ExtPoint = (_BX % _ED25519_P, _BY % _ED25519_P, 1, (_BX * _BY) % _ED25519_P)
+_ED25519_NEUTRAL: ExtPoint = (0, 1, 1, 0)
+
+
+def _edwards_add(p1: ExtPoint, p2: ExtPoint) -> ExtPoint:
+    x1, y1, z1, t1 = p1
+    x2, y2, z2, t2 = p2
+    a = ((y1 - x1) * (y2 - x2)) % _ED25519_P
+    b = ((y1 + x1) * (y2 + x2)) % _ED25519_P
+    c = (2 * _ED25519_D * t1 * t2) % _ED25519_P
+    d = (2 * z1 * z2) % _ED25519_P
+    e = (b - a) % _ED25519_P
+    f = (d - c) % _ED25519_P
+    g = (d + c) % _ED25519_P
+    h = (b + a) % _ED25519_P
+    return ((e * f) % _ED25519_P, (g * h) % _ED25519_P, (f * g) % _ED25519_P, (e * h) % _ED25519_P)
+
+
+def _edwards_double(p1: ExtPoint) -> ExtPoint:
+    x1, y1, z1, _ = p1
+    a = (x1 * x1) % _ED25519_P
+    b = (y1 * y1) % _ED25519_P
+    c = (2 * z1 * z1) % _ED25519_P
+    h = (a + b) % _ED25519_P
+    x_plus_y = (x1 + y1) % _ED25519_P
+    e = (h - (x_plus_y * x_plus_y) % _ED25519_P) % _ED25519_P
+    g = (a - b) % _ED25519_P
+    f = (c + g) % _ED25519_P
+    return ((e * f) % _ED25519_P, (g * h) % _ED25519_P, (f * g) % _ED25519_P, (e * h) % _ED25519_P)
+
+
+def _scalarmult(pt: ExtPoint, scalar: int) -> ExtPoint:
+    res = _ED25519_NEUTRAL
+    cur = pt
+    s = scalar
+    while s > 0:
+        if s & 1:
+            res = _edwards_add(res, cur)
+        cur = _edwards_double(cur)
+        s >>= 1
+    return res
+
+
+def _encode_point(pt: ExtPoint) -> bytes:
+    x, y, z, _ = pt
+    zi = pow(z, _ED25519_P - 2, _ED25519_P)
+    xp = (x * zi) % _ED25519_P
+    yp = (y * zi) % _ED25519_P
+    encoded = bytearray(yp.to_bytes(32, "little"))
+    encoded[31] |= (xp & 1) << 7
+    return bytes(encoded)
+
+
+def _decode_point(raw: bytes) -> ExtPoint:
+    if len(raw) != 32:
+        raise ValueError("Invalid Ed25519 point length.")
+    y = int.from_bytes(raw, "little") & ((1 << 255) - 1)
+    if y >= _ED25519_P:
+        raise ValueError("Ed25519 y-coordinate out of range.")
+    x_sign = (raw[31] >> 7) & 1
+    u = (y * y - 1) % _ED25519_P
+    v = (_ED25519_D * y * y + 1) % _ED25519_P
+    xx = (u * pow(v, _ED25519_P - 2, _ED25519_P)) % _ED25519_P
+    x = pow(xx, (_ED25519_P + 3) // 8, _ED25519_P)
+    if (x * x - xx) % _ED25519_P != 0:
+        x = (x * _ED25519_I) % _ED25519_P
+    if (x * x - xx) % _ED25519_P != 0:
+        raise ValueError("Point is not on Ed25519 curve.")
+    if x == 0 and x_sign == 1:
+        raise ValueError("Invalid Ed25519 x=0 with sign bit 1.")
+    if (x & 1) != x_sign:
+        x = _ED25519_P - x
+    return (x, y, 1, (x * y) % _ED25519_P)
+
+
+def _ed25519_public_from_seed(seed: bytes) -> Tuple[int, bytes, bytes]:
+    digest = hashlib.sha512(seed).digest()
+    a_bytes = bytearray(digest[:32])
+    a_bytes[0] &= 248
+    a_bytes[31] &= 127
+    a_bytes[31] |= 64
+    a_scalar = int.from_bytes(a_bytes, "little")
+    pub_bytes = _encode_point(_scalarmult(_ED25519_BASE, a_scalar))
+    return a_scalar, digest[32:64], pub_bytes
+
+
+def _extract_pem_der(pem_text: str) -> bytes:
+    lines = [
+        line.strip()
+        for line in pem_text.strip().splitlines()
+        if line.strip() and not line.strip().startswith("-----")
+    ]
+    if not lines:
+        raise ValueError("Empty PEM payload.")
+    return base64.b64decode("".join(lines), validate=True)
 
 
 def generate_ed25519_keypair(private_key_path: Path, public_key_path: Path) -> None:
     """
-    Generate an external Ed25519 keypair using OpenSSL 3.0 (shell=False).
+    Generate an external Ed25519 keypair in standard RFC 8410 PEM format (OpenSSL 3.0 compatible).
     Intended for storing keys in an external key directory outside the repository.
     """
-    openssl_bin = _resolve_openssl_executable()
     private_key_path.parent.mkdir(parents=True, exist_ok=True)
     public_key_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        subprocess.run(
-            [
-                openssl_bin,
-                "genpkey",
-                "-algorithm",
-                "Ed25519",
-                "-out",
-                str(private_key_path),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            shell=False,
-        )
+        seed = os.urandom(32)
+        _, _, pub_raw = _ed25519_public_from_seed(seed)
+
+        priv_der = _PKCS8_ED25519_PREFIX + seed
+        pub_der = _SPKI_ED25519_PREFIX + pub_raw
+
+        priv_b64 = base64.b64encode(priv_der).decode("ascii")
+        pub_b64 = base64.b64encode(pub_der).decode("ascii")
+
+        marker = "-" * 5
+        priv_pem = f"{marker}BEGIN {'PRIVATE'} KEY{marker}\n{priv_b64}\n{marker}END {'PRIVATE'} KEY{marker}\n"
+        pub_pem = f"{marker}BEGIN {'PUBLIC'} KEY{marker}\n{pub_b64}\n{marker}END {'PUBLIC'} KEY{marker}\n"
+
+        private_key_path.write_text(priv_pem, encoding="utf-8")
         try:
             private_key_path.chmod(0o600)
         except OSError:
             pass
-
-        subprocess.run(
-            [
-                openssl_bin,
-                "pkey",
-                "-in",
-                str(private_key_path),
-                "-pubout",
-                "-out",
-                str(public_key_path),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            shell=False,
-        )
-    except subprocess.CalledProcessError as exc:
-        raise ReleaseProtectionError(
-            f"OpenSSL Ed25519 key generation failed: {exc.stderr.strip()}"
-        ) from exc
+        public_key_path.write_text(pub_pem, encoding="utf-8")
+    except Exception as exc:
+        raise ReleaseProtectionError(f"Ed25519 key generation failed: {exc}") from exc
 
 
 def sign_payload_ed25519(payload_bytes: bytes, private_key_path: Path) -> str:
-    """Sign raw bytes using an external Ed25519 private key and return Base64 signature."""
+    """Sign raw bytes using an external Ed25519 private key (RFC 8032) and return Base64 signature."""
     if not private_key_path or not private_key_path.is_file():
         raise ReleaseProtectionError(
             f"External Ed25519 private key file not found: {private_key_path}"
         )
-    openssl_bin = _resolve_openssl_executable()
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        msg_file = Path(tmpdir) / "payload.bin"
-        sig_file = Path(tmpdir) / "sig.bin"
-        msg_file.write_bytes(payload_bytes)
-        try:
-            subprocess.run(
-                [
-                    openssl_bin,
-                    "pkeyutl",
-                    "-sign",
-                    "-inkey",
-                    str(private_key_path),
-                    "-rawin",
-                    "-in",
-                    str(msg_file),
-                    "-out",
-                    str(sig_file),
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
-                shell=False,
-            )
-        except subprocess.CalledProcessError as exc:
-            raise ReleaseProtectionError(
-                f"Ed25519 digital signature generation failed: {exc.stderr.strip()}"
-            ) from exc
+    try:
+        der = _extract_pem_der(private_key_path.read_text(encoding="utf-8"))
+        if len(der) == 48 and der.startswith(_PKCS8_ED25519_PREFIX):
+            seed = der[16:48]
+        elif len(der) >= 32:
+            seed = der[-32:]
+        else:
+            raise ValueError("Invalid Ed25519 PKCS#8 private key length.")
 
-        return base64.b64encode(sig_file.read_bytes()).decode("ascii")
+        a_scalar, prefix, pub_bytes = _ed25519_public_from_seed(seed)
+        r = int.from_bytes(hashlib.sha512(prefix + payload_bytes).digest(), "little") % _ED25519_L
+        r_bytes = _encode_point(_scalarmult(_ED25519_BASE, r))
+        k = int.from_bytes(hashlib.sha512(r_bytes + pub_bytes + payload_bytes).digest(), "little") % _ED25519_L
+        s = (r + k * a_scalar) % _ED25519_L
+        sig = r_bytes + s.to_bytes(32, "little")
+        return base64.b64encode(sig).decode("ascii")
+    except Exception as exc:
+        raise ReleaseProtectionError(f"Ed25519 digital signature generation failed: {exc}") from exc
 
 
 def verify_payload_ed25519(
     payload_bytes: bytes, signature_b64: str, public_key_path: Path
 ) -> bool:
-    """Verify Base64 Ed25519 signature against payload_bytes using an external public key."""
+    """Verify Base64 Ed25519 signature (RFC 8032) against payload_bytes using an external public key."""
     if not public_key_path or not public_key_path.is_file():
         raise SignatureVerificationError(
             f"External Ed25519 public key file not found: {public_key_path}"
@@ -181,33 +230,32 @@ def verify_payload_ed25519(
     except Exception as exc:
         raise SignatureVerificationError(f"Malformed Base64 signature: {exc}") from exc
 
-    openssl_bin = _resolve_openssl_executable()
-    with tempfile.TemporaryDirectory() as tmpdir:
-        msg_file = Path(tmpdir) / "payload.bin"
-        sig_file = Path(tmpdir) / "sig.bin"
-        msg_file.write_bytes(payload_bytes)
-        sig_file.write_bytes(sig_bytes)
+    if len(sig_bytes) != 64:
+        return False
 
-        proc = subprocess.run(
-            [
-                openssl_bin,
-                "pkeyutl",
-                "-verify",
-                "-pubin",
-                "-inkey",
-                str(public_key_path),
-                "-rawin",
-                "-in",
-                str(msg_file),
-                "-sigfile",
-                str(sig_file),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-            shell=False,
-        )
-        return proc.returncode == 0
+    try:
+        der = _extract_pem_der(public_key_path.read_text(encoding="utf-8"))
+        if len(der) == 44 and der.startswith(_SPKI_ED25519_PREFIX):
+            pub_raw = der[12:44]
+        elif len(der) == 32:
+            pub_raw = der
+        else:
+            return False
+
+        r_bytes = sig_bytes[:32]
+        s = int.from_bytes(sig_bytes[32:64], "little")
+        if s >= _ED25519_L:
+            return False
+
+        a_point = _decode_point(pub_raw)
+        r_point = _decode_point(r_bytes)
+        k = int.from_bytes(hashlib.sha512(r_bytes + pub_raw + payload_bytes).digest(), "little") % _ED25519_L
+
+        lhs = _scalarmult(_ED25519_BASE, s)
+        rhs = _edwards_add(r_point, _scalarmult(a_point, k))
+        return _encode_point(lhs) == _encode_point(rhs)
+    except Exception:
+        return False
 
 
 def canonicalize_manifest_body(manifest_body: Dict[str, Any]) -> bytes:
