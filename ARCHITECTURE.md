@@ -75,6 +75,14 @@ sentinel-x/
 │       └── default_rules.json        # กฎตรวจจับเริ่มต้นพร้อม MITRE ATT&CK Mapping
 ├── data/
 │   └── samples/                      # ข้อมูล Log ตัวอย่างสำหรับทดสอบ (ระบุชัดเจนว่าเป็น Sample)
+├── scripts/
+│   ├── build_exe.py                  # สคริปต์คอมไพล์ Standalone Windows .exe (PyInstaller / Clang+LLD PE32+ / csc.exe)
+│   ├── build_release_package.py      # สคริปต์สร้างแพ็กเกจ .whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt
+│   ├── release_patch.py              # สคริปต์อัตโนมัติสำหรับปรับเวอร์ชัน, สร้างไฟล์ .patch, คอมไพล์ .exe และอัปเดต GitHub
+│   ├── build_windows.bat             # สคริปต์ Build .exe แบบคลิกเดียวบน Windows
+│   └── apply_patch_windows.bat       # สคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้ว
+├── patches/                          # เก็บไฟล์ Git Unified Diff Patch (v*.patch, latest.patch, PATCH_MANIFEST.json)
+├── dist/                             # เก็บไฟล์ sentinel-x.exe ที่คอมไพล์พร้อมใช้งานทันทีพร้อมไฟล์ .sha256 และ build_manifest.json
 ├── tests/                            # Unit Tests & Integration Tests แยกตามโมดูล
 └── docs/                             # เอกสารคู่มือการติดตั้ง การตั้งค่า และความปลอดภัย
 ```

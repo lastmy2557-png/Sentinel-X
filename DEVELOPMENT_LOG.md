@@ -180,3 +180,27 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`63 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
   - แก้ไขปัญหาปุ่มเมนูนำทางบนหัวหน้า `/settings` ซ้อนทับกันเมื่อข้อความยาวเสร็จเรียบร้อย พร้อม Commit, Push, และอัปเดต Git Tag `v0.1.0`
+
+---
+
+## [2026-11-07] — PHASE 10 (AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE)
+
+- **งานที่ทำเสร็จ:**
+  - พัฒนา `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` โดยใช้ `clang --target=x86_64-pc-windows-msvc` + `llvm-dlltool` + `lld-link` เพื่อคอมไพล์ `dist/sentinel-x.exe` เป็นไฟล์ **Native 64-bit Windows PE32+ Console Executable** พร้อมฝัง ZipApp ในตัวเดียว และอนุญาตให้ Track ไฟล์ `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, และ `dist/build_manifest.json` ลงใน Git เพื่อให้ผู้ใช้ดึงไฟล์ `.exe` ที่คอมไพล์เสร็จแล้วไปรันได้ทันที
+  - พัฒนา `scripts/release_patch.py` สำหรับทำงานอัตโนมัติทุกครั้งที่มีการอัปเดตไฟล์:
+    1. ปรับเลขเวอร์ชันอัตโนมัติ (`patch`, `minor`, `major` หรือระบุ `--version`) ใน `sentinel_x/__init__.py` และ `pyproject.toml`
+    2. รัน Anti-REA Security Audit
+    3. สร้างไฟล์ `.patch` มาตรฐาน (`patches/v<version>.patch`, `patches/latest.patch`) และ `patches/PATCH_MANIFEST.json`
+    4. คอมไพล์ `dist/sentinel-x.exe` ใหม่พร้อมคำนวณ SHA-256 และสร้างชุดแพ็กเกจ Release
+    5. Commit, ติด Git Tag เวอร์ชันใหม่ (`v0.1.1`) และ Push ขึ้น GitHub (`origin/main`) อัตโนมัติ
+  - พัฒนา `scripts/apply_patch_windows.bat` สำหรับอัปเดต Patch และตรวจรับ `dist\sentinel-x.exe` บน Windows แบบคลิกเดียว พร้อมแสดงป้ายเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - สร้างใหม่: `scripts/release_patch.py`, `scripts/apply_patch_windows.bat`, `patches/v0.1.1.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`, `dist/sentinel-x.exe`, `dist/sentinel-x.exe.sha256`, `dist/build_manifest.json`
+  - แก้ไข: `scripts/build_exe.py`, `sentinel_x/cli.py`, `sentinel_x/dashboard/server.py`, `sentinel_x/security/release_protection/scanner.py`, `sentinel_x/security/release_protection/inventory.py`, `.gitignore`, `tests/test_api_settings_and_release_pkg.py`, `README.md`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - ใช้ `clang` + `lld-link` คอมไพล์ Native Win32 PE32+ Stub ที่เรียกใช้เฉพาะ `kernel32.dll` (ไม่ต้องพึ่งพา CRT ภายนอก) ต่อท้ายด้วย Python ZipApp เพื่อให้ `dist/sentinel-x.exe` ถูกคอมไพล์เสร็จสมบูรณ์ตั้งแต่ต้นทางทุกครั้งที่มีการออก Patch
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 23/23 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.1`, คอมไพล์ `dist/sentinel-x.exe`, และ Push ขึ้น GitHub

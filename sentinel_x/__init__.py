@@ -4,5 +4,5 @@ Local-first, modular cybersecurity monitoring, threat detection, incident respon
 and release protection (Anti-REA) platform.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Sentinel-X Engineering Team"

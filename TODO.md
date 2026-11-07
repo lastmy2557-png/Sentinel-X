@@ -57,7 +57,12 @@
   - [x] พัฒนา REST API สำหรับบันทึกและทดสอบการเชื่อมต่อจริง (`/api/v1/settings/connectors`, `/api/v1/settings/connectors/test`) พร้อมจัดเก็บลง SQLite (`connector_settings`) และซ่อนค่า API Key (`••••••••xxxx`)
   - [x] พัฒนา `scripts/build_release_package.py` สร้างไฟล์ `.whl`, `.tar.gz`, `-release-bundle.zip`, `release_manifest.json`, และ `SHA256SUMS.txt`
   - [x] พัฒนา `Dockerfile` และ `.github/workflows/release-and-package.yml` สำหรับเผยแพร่ GitHub Release และ GitHub Packages (`ghcr.io`)
-  - [x] พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py` (รันผ่านครบ 22/22 tests ทั้งโปรเจกต์)
+  - [x] พัฒนาชุดทดสอบ `tests/test_api_settings_and_release_pkg.py`
+- [x] **PHASE 10 — AUTOMATED PATCH GENERATOR, PRE-COMPILED .EXE & VERSION RELEASE PIPELINE**:
+  - [x] พัฒนา `build_windows_pe_zipapp_exe()` ใน `scripts/build_exe.py` เพื่อคอมไพล์ `dist/sentinel-x.exe` (Windows 64-bit PE32+ Console Executable + Embedded ZipApp) ให้เสร็จพร้อมใช้งานทันทีโดยไม่ต้องรอคอมไพล์เอง
+  - [x] พัฒนา `scripts/release_patch.py` สำหรับปรับเลขเวอร์ชันอัตโนมัติ (`sentinel_x/__init__.py`, `pyproject.toml`), สร้างไฟล์ `.patch` (`patches/v<version>.patch`, `patches/latest.patch`, `patches/PATCH_MANIFEST.json`), คอมไพล์ `dist/sentinel-x.exe` ใหม่ และอัปเดต Git Tag บน GitHub
+  - [x] พัฒนา `scripts/apply_patch_windows.bat` สำหรับดึง Patch และไฟล์ `.exe` ล่าสุดบน Windows แบบคลิกเดียว พร้อมแสดงป้ายเลขเวอร์ชัน (`v0.1.1`) บนหน้า `/` และ `/settings`
+  - [x] ทดสอบครบ 23/23 Automated Tests ทั้งโปรเจกต์
 
 ---
 

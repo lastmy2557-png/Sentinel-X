@@ -27,6 +27,7 @@ DEFAULT_EXCLUDED_DIRS: Set[str] = {
     "logs",
     "build",
     "dist",
+    "patches",
 }
 
 DEFAULT_EXCLUDED_PATTERNS: List[str] = [

@@ -84,22 +84,22 @@ python3 -m sentinel_x.security.release_protection.cli verify \
   --public-key /tmp/sentinel_release_public.pem
 ```
 
-### 4. การคอมไพล์เป็นไฟล์ `.exe` บน Windows (Standalone Executable)
+### 4. การอัปเดต Patch และใช้งานไฟล์ `dist\sentinel-x.exe` ที่คอมไพล์เสร็จแล้วบน Windows
+ทุกครั้งที่มีการอัปเดตโค้ด ระบบจะสร้างไฟล์ `.patch` ในโฟลเดอร์ `patches/` และคอมไพล์ไฟล์ `dist\sentinel-x.exe` ให้เสร็จสมบูรณ์พร้อมใช้งานทันที:
 ```bat
-REM รันสคริปต์ One-Click Build บนเครื่อง Windows (สร้าง .venv, รัน Tests, ตรวจ Anti-REA, และสร้าง dist\sentinel-x.exe)
-scripts\build_windows.bat
+REM วิธีที่ 1: รันสคริปต์อัปเดต Patch และตรวจรับไฟล์ dist\sentinel-x.exe ล่าสุดแบบคลิกเดียว
+scripts\apply_patch_windows.bat
 
-REM หรือตรวจสอบคำสั่ง Build แบบ Dry-run
-python scripts/build_exe.py --dry-run
+REM วิธีที่ 2: หรือใช้ git pull แล้วรันไฟล์ dist\sentinel-x.exe ที่คอมไพล์เสร็จแล้วได้ทันที (ไม่ต้องคอมไพล์ใหม่เอง)
+git pull origin main
+dist\sentinel-x.exe --version
+dist\sentinel-x.exe serve --host 127.0.0.1 --port 8080
 ```
 
-### 5. การสร้าง Release Artifacts & GitHub Packages
+### 5. การสร้าง Patch, คอมไพล์ `.exe` และอัปเดตเวอร์ชันขึ้น GitHub อัตโนมัติ (`scripts/release_patch.py`)
 ```bash
-# สร้างแพ็กเกจสำหรับแจกจ่าย (PEP 427 .whl, .tar.gz, .zip, release_manifest.json, SHA256SUMS.txt)
-python3 scripts/build_release_package.py --dist-dir dist
-
-# สร้าง Container Image สำหรับ GitHub Packages (ghcr.io/lastmy2557-png/sentinel-x)
-docker build -t ghcr.io/lastmy2557-png/sentinel-x:latest .
+# ปรับเลขเวอร์ชัน (เช่น 0.1.0 -> 0.1.1), สร้างไฟล์ patches/v0.1.1.patch, คอมไพล์ dist/sentinel-x.exe และ Push ขึ้น GitHub
+python3 scripts/release_patch.py --bump patch --summary "คำอธิบายการอัปเดต" --commit-and-push
 ```
 
 ---

@@ -24,6 +24,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, urlparse
 
+from sentinel_x import __version__
 from sentinel_x.core.config import SentinelConfig
 from sentinel_x.core.database import DatabaseManager
 from sentinel_x.core.exceptions import SentinelXError, ValidationError
@@ -76,6 +77,7 @@ class DashboardService:
 
         return {
             "platform": "Sentinel-X SOC Platform",
+            "version": __version__,
             "data_origin_notice": data_origin_notice,
             "statistics": stats,
             "recent_events": recent_events,
@@ -137,12 +139,13 @@ class DashboardService:
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<title>Sentinel-X Security Operations Dashboard</title>
+<title>Sentinel-X v{esc(__version__)} — Security Operations Dashboard</title>
 <style>
 *, *::before, *::after {{ box-sizing: border-box; }}
 body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
 .topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
-.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }}
+.ver-pill {{ font-size: 0.8rem; background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }}
 .nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
 .nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
 .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
@@ -159,7 +162,7 @@ code {{ color: #38bdf8; }}
 </head>
 <body>
 <div class="topbar">
-  <h1>Sentinel-X — Security Operations Dashboard</h1>
+  <h1>Sentinel-X — Security Operations Dashboard <span class="ver-pill">v{esc(__version__)}</span></h1>
   <div class="nav">
     <a href="/" class="active">SOC Dashboard</a>
     <a href="/settings">ตั้งค่า API บริการภายนอก (API Settings)</a>
@@ -264,12 +267,13 @@ code {{ color: #38bdf8; }}
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<title>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
+<title>Sentinel-X v{esc(__version__)} — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
 <style>
 *, *::before, *::after {{ box-sizing: border-box; }}
 body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
 .topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
-.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }}
+.ver-pill {{ font-size: 0.8rem; background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 700; white-space: nowrap; }}
 .nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
 .nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
 .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
@@ -301,7 +305,7 @@ button {{ padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight
 </head>
 <body>
 <div class="topbar">
-  <h1>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings)</h1>
+  <h1>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings) <span class="ver-pill">v{esc(__version__)}</span></h1>
   <div class="nav">
     <a href="/">SOC Dashboard</a>
     <a href="/settings" class="active">ตั้งค่า API บริการภายนอก (API Settings)</a>

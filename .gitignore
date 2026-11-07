@@ -29,7 +29,10 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
+dist/*
+!dist/sentinel-x.exe
+!dist/sentinel-x.exe.sha256
+!dist/build_manifest.json
 build/
 wheels/
 *.spec

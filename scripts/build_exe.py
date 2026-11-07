@@ -84,10 +84,36 @@ def _find_windows_csc_compiler() -> Optional[Path]:
     return None
 
 
+def _read_current_version(project_root: Path = PROJECT_ROOT) -> str:
+    init_file = project_root / "sentinel_x" / "__init__.py"
+    if init_file.is_file():
+        for line in init_file.read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith("__version__"):
+                _, _, rhs = line.partition("=")
+                return rhs.strip().strip('"').strip("'")
+    return __version__
+
+
 def _create_embedded_payload_zip(project_root: Path, zip_path: Path) -> str:
-    """Create a deterministic zip archive containing sentinel_x, config/rules, and data/samples."""
+    """Create a deterministic zip archive containing __main__.py, sentinel_x, config/rules, and data/samples."""
     zip_path.parent.mkdir(parents=True, exist_ok=True)
+    root_main_code = (
+        "# Sentinel-X Embedded ZipApp Root Entrypoint\n"
+        "from __future__ import annotations\n"
+        "import sys\n"
+        "from pathlib import Path\n"
+        "try:\n"
+        "    _exe_dir = Path(__file__).resolve().parent\n"
+        "    if _exe_dir.parent.name == 'dist' and (_exe_dir.parent.parent / 'sentinel_x' / '__init__.py').is_file():\n"
+        "        sys.path.insert(0, str(_exe_dir.parent.parent))\n"
+        "except Exception:\n"
+        "    pass\n"
+        "from sentinel_x.__main__ import run_entrypoint\n"
+        "if __name__ == '__main__':\n"
+        "    raise SystemExit(run_entrypoint())\n"
+    )
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("__main__.py", root_main_code.encode("utf-8"))
         for folder_rel in ("sentinel_x", "config/rules", "data/samples"):
             src_folder = project_root / folder_rel
             if not src_folder.is_dir():
@@ -98,6 +124,179 @@ def _create_embedded_payload_zip(project_root: Path, zip_path: Path) -> str:
                 arcname = file_path.relative_to(project_root).as_posix()
                 zf.write(file_path, arcname=arcname)
     return hashlib.sha256(zip_path.read_bytes()).hexdigest()[:16]
+
+
+def build_windows_pe_zipapp_exe(
+    project_root: Path,
+    dist_dir: Path,
+    work_dir: Path,
+    exe_name: str = "sentinel-x",
+) -> Path:
+    """
+    Compile a native 64-bit Windows PE32+ Console Executable (x86_64) using clang + llvm-dlltool + lld-link
+    and append the deterministic Sentinel-X Python ZipApp payload directly to the .exe binary.
+    Works both on Windows (natively via Win32 CreateProcessW) and via `python dist/sentinel-x.exe`.
+    """
+    dist_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
+
+    payload_zip = work_dir / "sentinel_x_payload.zip"
+    _create_embedded_payload_zip(project_root, payload_zip)
+
+    def_file = work_dir / "kernel32.def"
+    def_file.write_text(
+        "LIBRARY kernel32.dll\n"
+        "EXPORTS\n"
+        "GetModuleFileNameW\n"
+        "GetCommandLineW\n"
+        "CreateProcessW\n"
+        "WaitForSingleObject\n"
+        "GetExitCodeProcess\n"
+        "CloseHandle\n"
+        "ExitProcess\n",
+        encoding="utf-8",
+    )
+    lib_file = work_dir / "kernel32.lib"
+    c_file = work_dir / "pe_launcher.c"
+    obj_file = work_dir / "pe_launcher.obj"
+    stub_exe = work_dir / "pe_stub.exe"
+    exe_path = dist_dir / (exe_name if exe_name.endswith(".exe") else f"{exe_name}.exe")
+
+    c_code = """
+typedef unsigned short WCHAR;
+typedef unsigned int DWORD;
+typedef int BOOL;
+typedef void* HANDLE;
+typedef struct _STARTUPINFOW {
+    DWORD cb; WCHAR *lpReserved; WCHAR *lpDesktop; WCHAR *lpTitle;
+    DWORD dwX; DWORD dwY; DWORD dwXSize; DWORD dwYSize;
+    DWORD dwXCountChars; DWORD dwYCountChars; DWORD dwFillAttribute;
+    DWORD dwFlags; unsigned short wShowWindow; unsigned short cbReserved2;
+    unsigned char *lpReserved2; HANDLE hStdInput; HANDLE hStdOutput; HANDLE hStdError;
+} STARTUPINFOW;
+typedef struct _PROCESS_INFORMATION {
+    HANDLE hProcess; HANDLE hThread; DWORD dwProcessId; DWORD dwThreadId;
+} PROCESS_INFORMATION;
+
+__declspec(dllimport) DWORD __stdcall GetModuleFileNameW(HANDLE, WCHAR*, DWORD);
+__declspec(dllimport) WCHAR* __stdcall GetCommandLineW(void);
+__declspec(dllimport) BOOL __stdcall CreateProcessW(const WCHAR*, WCHAR*, void*, void*, BOOL, DWORD, void*, const WCHAR*, STARTUPINFOW*, PROCESS_INFORMATION*);
+__declspec(dllimport) DWORD __stdcall WaitForSingleObject(HANDLE, DWORD);
+__declspec(dllimport) BOOL __stdcall GetExitCodeProcess(HANDLE, DWORD*);
+__declspec(dllimport) BOOL __stdcall CloseHandle(HANDLE);
+__declspec(dllimport) void __stdcall ExitProcess(DWORD);
+
+static void append_str(WCHAR *dst, int *pos, const WCHAR *src) {
+    int i = 0;
+    while (src[i] != 0 && *pos < 32000) {
+        dst[(*pos)++] = src[i++];
+    }
+    dst[*pos] = 0;
+}
+
+static WCHAR* skip_argv0(WCHAR *cmd) {
+    if (!cmd) return cmd;
+    while (*cmd == L' ' || *cmd == L'\\t') cmd++;
+    if (*cmd == L'"') {
+        cmd++;
+        while (*cmd && *cmd != L'"') cmd++;
+        if (*cmd == L'"') cmd++;
+    } else {
+        while (*cmd && *cmd != L' ' && *cmd != L'\\t') cmd++;
+    }
+    return cmd;
+}
+
+void mainCRTStartup(void) {
+    static WCHAR selfPath[4096];
+    static WCHAR fullCmd[32768];
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+    DWORD exitCode = 1;
+    int i;
+
+    for (i = 0; i < (int)sizeof(si); i++) ((unsigned char*)&si)[i] = 0;
+    for (i = 0; i < (int)sizeof(pi); i++) ((unsigned char*)&pi)[i] = 0;
+    si.cb = sizeof(si);
+
+    GetModuleFileNameW(0, selfPath, 4095);
+    WCHAR *rest = skip_argv0(GetCommandLineW());
+
+    int pos = 0;
+    const WCHAR p1[] = { 'p','y','t','h','o','n',' ','"',0 };
+    const WCHAR q[] = { '"', 0 };
+    append_str(fullCmd, &pos, p1);
+    append_str(fullCmd, &pos, selfPath);
+    append_str(fullCmd, &pos, q);
+    if (rest && *rest) {
+        append_str(fullCmd, &pos, rest);
+    }
+
+    BOOL ok = CreateProcessW(0, fullCmd, 0, 0, 1, 0, 0, 0, &si, &pi);
+    if (!ok) {
+        pos = 0;
+        const WCHAR p2[] = { 'p','y',' ','-','3',' ','"',0 };
+        append_str(fullCmd, &pos, p2);
+        append_str(fullCmd, &pos, selfPath);
+        append_str(fullCmd, &pos, q);
+        if (rest && *rest) {
+            append_str(fullCmd, &pos, rest);
+        }
+        ok = CreateProcessW(0, fullCmd, 0, 0, 1, 0, 0, 0, &si, &pi);
+    }
+    if (ok) {
+        WaitForSingleObject(pi.hProcess, 0xFFFFFFFF);
+        GetExitCodeProcess(pi.hProcess, &exitCode);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+    }
+    ExitProcess(exitCode);
+}
+"""
+    c_file.write_text(c_code.strip() + "\n", encoding="utf-8")
+
+    subprocess.run(
+        ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
+        check=True,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    subprocess.run(
+        [
+            "clang",
+            "--target=x86_64-pc-windows-msvc",
+            "-Os",
+            "-fno-stack-protector",
+            "-mno-stack-arg-probe",
+            "-c",
+            str(c_file),
+            "-o",
+            str(obj_file),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+    subprocess.run(
+        [
+            "lld-link",
+            "/subsystem:console",
+            "/entry:mainCRTStartup",
+            "/nodefaultlib",
+            str(obj_file),
+            str(lib_file),
+            f"/out:{stub_exe}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+
+    exe_path.write_bytes(stub_exe.read_bytes() + payload_zip.read_bytes())
+    return exe_path
 
 
 def build_windows_native_exe_fallback(
@@ -207,23 +406,24 @@ class SentinelXLauncher {{
 
 
 def write_build_integrity_artifacts(
-    exe_path: Path, dist_dir: Path, builder_used: str = "PyInstaller"
+    exe_path: Path, dist_dir: Path, builder_used: str = "PyInstaller", project_root: Path = PROJECT_ROOT
 ) -> Dict[str, Any]:
     """Compute SHA-256 digest of the compiled executable and write integrity metadata."""
     sha256_hex = compute_file_sha256(exe_path)
     size_bytes = exe_path.stat().st_size
+    cur_version = _read_current_version(project_root)
 
     checksum_file = dist_dir / f"{exe_path.name}.sha256"
     checksum_file.write_text(f"{sha256_hex}  {exe_path.name}\n", encoding="utf-8")
 
     build_manifest = {
         "schema": "sentinel_x.executable_build.v1",
-        "version": __version__,
+        "version": cur_version,
         "builder": builder_used,
         "python_version": py_platform.python_version(),
         "built_at": datetime.now(timezone.utc).isoformat(),
-        "target_os": py_platform.system(),
-        "target_arch": py_platform.machine(),
+        "target_os": "Windows" if exe_path.suffix.lower() == ".exe" else py_platform.system(),
+        "target_arch": "x86_64" if exe_path.suffix.lower() == ".exe" else py_platform.machine(),
         "executable_name": exe_path.name,
         "size_bytes": size_bytes,
         "sha256": sha256_hex,
@@ -314,15 +514,20 @@ def run_build(
             )
             builder_used = "WindowsNativePE+EmbeddedZip"
         else:
-            raise RuntimeError(
-                "PyInstaller build failed or PyInstaller is not installed. "
-                "Install it first with: pip install pyinstaller"
+            exe_path = build_windows_pe_zipapp_exe(
+                project_root=root,
+                dist_dir=out_dist,
+                work_dir=out_work,
+                exe_name=exe_name,
             )
+            builder_used = "ClangLLDWindowsPE32Plus+EmbeddedZipApp"
 
     if not exe_path.is_file():
         raise RuntimeError(f"Expected compiled binary not found at: {exe_path}")
 
-    build_manifest = write_build_integrity_artifacts(exe_path, out_dist, builder_used=builder_used)
+    build_manifest = write_build_integrity_artifacts(
+        exe_path, out_dist, builder_used=builder_used, project_root=root
+    )
     return {
         "status": "BUILT",
         "executable_path": str(exe_path),

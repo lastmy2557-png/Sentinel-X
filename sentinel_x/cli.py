@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
+from sentinel_x import __version__
 from sentinel_x.core.config import SentinelConfig
 from sentinel_x.dashboard.server import create_dashboard_http_server
 from sentinel_x.platform import SentinelXPlatform
@@ -26,6 +27,11 @@ def build_cli_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sentinel-x",
         description="Sentinel-X Cybersecurity & SOC Platform CLI",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"Sentinel-X v{__version__}",
     )
     parser.add_argument(
         "--db",

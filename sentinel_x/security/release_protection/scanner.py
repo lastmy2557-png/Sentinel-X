@@ -28,6 +28,7 @@ DEFAULT_SCAN_EXCLUDED_DIRS: Set[str] = {
     "node_modules",
     "build",
     "dist",
+    "patches",
 }
 
 SAFE_PLACEHOLDER_MARKERS = (

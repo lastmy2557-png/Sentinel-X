@@ -21,7 +21,9 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import ProxyHandler, Request, build_opener
 
+from scripts.build_exe import build_windows_pe_zipapp_exe
 from scripts.build_release_package import PROJECT_ROOT, build_all_release_packages
+from scripts.release_patch import bump_semver, parse_semver, update_version_files
 from sentinel_x.core import AuditLogger, DatabaseManager, SentinelConfig
 from sentinel_x.dashboard import DashboardService, create_dashboard_http_server
 from sentinel_x.integrations import IntegrationRegistry
@@ -190,6 +192,43 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
                 fpath = out_dist / fname
                 self.assertTrue(fpath.is_file(), f"Missing expected release artifact: {fname}")
                 self.assertGreater(fpath.stat().st_size, 0)
+
+    def test_patch_generator_and_windows_pe_zipapp_compiler(self) -> None:
+        self.assertEqual(parse_semver("0.1.0"), (0, 1, 0))
+        self.assertEqual(bump_semver("0.1.0", "patch"), "0.1.1")
+        self.assertEqual(bump_semver("0.1.1", "minor"), "0.2.0")
+        self.assertEqual(bump_semver("0.2.0", "major"), "1.0.0")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            mock_root = tmp_path / "proj"
+            (mock_root / "sentinel_x").mkdir(parents=True, exist_ok=True)
+            (mock_root / "sentinel_x" / "__init__.py").write_text('__version__ = "0.1.0"\n', encoding="utf-8")
+            (mock_root / "pyproject.toml").write_text('[project]\nname = "sentinel-x"\nversion = "0.1.0"\n', encoding="utf-8")
+
+            changed = update_version_files(mock_root, "0.1.1")
+            self.assertEqual(len(changed), 2)
+            self.assertIn('__version__ = "0.1.1"', (mock_root / "sentinel_x" / "__init__.py").read_text(encoding="utf-8"))
+            self.assertIn('version = "0.1.1"', (mock_root / "pyproject.toml").read_text(encoding="utf-8"))
+
+            exe_out = build_windows_pe_zipapp_exe(
+                project_root=PROJECT_ROOT,
+                dist_dir=tmp_path / "dist",
+                work_dir=tmp_path / "work",
+                exe_name="sentinel-x",
+            )
+            self.assertTrue(exe_out.is_file())
+            raw_bytes = exe_out.read_bytes()
+            self.assertEqual(raw_bytes[:2], b"MZ")
+            self.assertIn(b"PE\x00\x00", raw_bytes[:512])
+
+        # Ensure scripts/apply_patch_windows.bat has zero multi-line parenthesized blocks
+        bat_text = (PROJECT_ROOT / "scripts" / "apply_patch_windows.bat").read_text(encoding="utf-8")
+        for raw_line in bat_text.splitlines():
+            line = raw_line.strip()
+            if not line or line.upper().startswith("REM"):
+                continue
+            self.assertFalse(line.endswith("("), f"Found parenthesized block in apply_patch_windows.bat: {line}")
 
 
 if __name__ == "__main__":
