@@ -250,3 +250,25 @@
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
 - **ปัญหาที่พบ:**
   - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.3`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub เพื่อให้ Vercel อัปเดต `https://sentinel-x-weld-tau.vercel.app/` อัตโนมัติ
+
+---
+
+## [2026-11-07] — PHASE 13 (SENTINELX.APP TECHNICAL-MANUAL LAYOUT REDESIGN `v0.1.4`)
+
+- **งานที่ทำเสร็จ:**
+  - วิเคราะห์โครงสร้างและดีไซน์ของ `https://sentinelx.app/` และปรับโฉม `public/index.html`, `public/styles.css`, และ `public/app.js` ให้มี Layout และลำดับการนำเสนอแบบเดียวกัน:
+    1. **Minimalist Dark Slate-Black & Monospace Topbar:** พื้นหลัง `#090c10` / `#0d1117`, เส้นขอบคมชัด `1px solid #26303f`, ปุ่มลัด `Skip to the manual` และแถบนำทางด้านบนตัวพิมพ์เล็กแบบ Monospace (`all`, `install`, `operate (soc)`, `detect & sigma`, `connect (/settings)`, `architecture`, `security (anti-rea)`, `reference & patch`)
+    2. **Split 2-Column Hero (`install` + `or connect first`):** กล่องซ้ายสำหรับเลือก OS (`Windows (.exe)`, `Linux / macOS`, `Docker`, `Anti-REA Sign`) พร้อมปุ่ม `Copy install command` และลิงก์ดาวน์โหลด `.exe` / `.patch`; กล่องขวาสำหรับกดเปิดคอนโซลหรือคัดลอก URL `/settings` พร้อมขั้นตอนเริ่มต้นแบบ `1, 2, 3`
+    3. **Link Map & `audit_events` Showcase:** แผนผัง `link map` 3 โหนด (`HOST TELEMETRY` ──► `HUB ENGINE` ──► `CLIENT & SOAR`), ตาราง `audit_events` แสดง `ts`, `host`, `op`, `status`, `raw_event`, `mitre_signature`, แถบป้าย `Any security stack, one hub` และการ์ดความน่าเชื่อถือ 4 ใบ
+    4. **Numbered `01` – `05` + `Ref` Interactive Manual Sections:** จัดเรียงทุกคอนโซลภายใต้หัวข้อหมายเลข `01` (`Operate the SOC Dashboard`), `02` (`Detect threats & configure Sigma YAML`), `03` (`Connect your external security APIs`), `04` (`Platform primitives & 6-module architecture`), `05` (`Security & Anti-REA Release Protection`), และ `Ref` (`Reference, Standalone .EXE & Automated Patch Center`)
+- **ไฟล์ที่เปลี่ยนแปลง:**
+  - แก้ไข/สร้างใหม่: `public/index.html`, `public/styles.css`, `public/app.js`, `public/version.json`, `public/downloads/*`, `public/patches/*`, `patches/v0.1.4.patch`
+  - อัปเดต: `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
+- **การตัดสินใจทางเทคนิค:**
+  - รักษา `id` และ `data-tab-target` ของคอนโซลทั้งหมดไว้ครบถ้วน เพื่อให้ทั้งการกดสลับแท็บจากแถบเมนูด้านบนและการเลื่อนอ่านแบบคู่มือหน้าเดียว (`all`) ทำงานได้ลื่นไหลเหมือน `sentinelx.app`
+- **Tests ที่รันและผลการทดสอบ:**
+  - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
+  - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
+- **ปัญหาที่พบ:**
+  - ไม่มี พร้อมรัน `scripts/release_patch.py` เพื่อออก Patch `v0.1.4`, คอมไพล์ `dist/sentinel-x.exe` ใหม่ และ Push ขึ้น GitHub เพื่อให้ Vercel อัปเดต `https://sentinel-x-weld-tau.vercel.app/` อัตโนมัติ
+

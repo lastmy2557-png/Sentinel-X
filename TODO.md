@@ -74,8 +74,14 @@
   - [x] พัฒนาหน้า **ตั้งค่า API บริการภายนอก (`/settings`)** ให้กรอกค่า บันทึก ซ่อน API Key (`••••••••xxxx`) ทดสอบการเชื่อมต่อ และดูตัวอย่าง Payload ได้ครบทั้ง 5 บริการ
   - [x] พัฒนา **Anti-REA Studio** สำหรับสแกนโค้ดหาช่องโหว่/ความลับรั่วไหล และจำลองการลงนามดิจิทัล `Ed25519` พร้อมจำลองการแอบแก้ไขไฟล์ (`TAMPER_DETECTED`)
   - [x] พัฒนาเครื่องมือ **In-Browser SHA-256 File Verifier** (`crypto.subtle.digest`) และ **Live Patch Diff Viewer** (`/patches/latest.patch` & `/patches/PATCH_MANIFEST.json`)
+- [x] **PHASE 13 — SENTINELX.APP TECHNICAL-MANUAL LAYOUT REDESIGN (`v0.1.4`)**:
+  - [x] ปรับโฉม Layout ของ `public/index.html`, `public/styles.css`, และ `public/app.js` ให้มีโครงสร้างและเอกลักษณ์เหมือน `https://sentinelx.app/`
+  - [x] สร้างส่วน **Split 2-Box Hero** (`install & run the platform` ด้านซ้ายพร้อมปุ่มสลับ OS + `or launch console & connect APIs first` ด้านขวาพร้อมปุ่มเปิดคอนโซลและคัดลอก URL)
+  - [x] สร้างส่วน **Showcase** ประกอบด้วยแผนผัง **`link map` 3 โหนด** (`HOST TELEMETRY` ──► `HUB ENGINE` ──► `CLIENT & SOAR`), ตาราง **`audit_events`** แบบ Monospace และแถบ **`Any security stack, one hub`** พร้อม 4 Trust Cards
+  - [x] จัดเรียงเนื้อหาและคอนโซลทั้งหมดเป็นหมวดหมู่คู่มือหมายเลข **`01` – `05` + `Ref`** พร้อมรายการ Tool Primitives แบบ 2 คอลัมน์ (`sentinel_ingest`, `sentinel_detect`, `sentinel_incidents`, `sentinel_report`, `sentinel_connectors`, `sentinel_antirea`)
 
 ---
+
 
 ## 2. งานที่กำลังทำ (In Progress Tasks)
 - ไม่มี (พัฒนา ทดสอบ และซิงค์ครบทุก Phase แล้ว)

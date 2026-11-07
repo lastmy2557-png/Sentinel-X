@@ -1,13 +1,13 @@
 {
   "schema": "sentinel_x.executable_build.v1",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "builder": "ClangLLDWindowsPE32Plus+EmbeddedZipApp",
   "python_version": "3.11.2",
-  "built_at": "2026-11-07T15:39:15.199053+00:00",
+  "built_at": "2026-11-07T15:54:48.014844+00:00",
   "target_os": "Windows",
   "target_arch": "x86_64",
   "executable_name": "sentinel-x.exe",
   "size_bytes": 73825,
-  "sha256": "e4395530a9212df02bd8ee922fd9a365b6c036cd7205c9c17adb522b4ef6c66d",
+  "sha256": "fbd0c0df8ec7b0ea801a6fc0331bc4199d90044307c05446af3a5880398d746e",
   "checksum_file": "sentinel-x.exe.sha256"
 }

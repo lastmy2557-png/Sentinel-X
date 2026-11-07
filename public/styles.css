@@ -1,36 +1,37 @@
 /* ==========================================================================
-   Sentinel-X Official Website & Interactive Web Console — (public/styles.css)
-   High-Craft Obsidian Slate Palette, Full Multi-Tab Interactive UI, Responsive
+   Sentinel-X Official Website — sentinelx.app Technical Manual Layout & Style
+   Minimalist Monospace-Accented Dark UI, Split Install/Connect Hero,
+   Link-Map Diagram, Live Audit Table, and Numbered 01–05 Manual Sections
    ========================================================================== */
 
 :root {
-  --bg-canvas: hsl(216, 28%, 7%);
-  --bg-surface: hsl(215, 24%, 10%);
-  --bg-elevated: hsl(215, 22%, 13%);
-  --bg-interactive: hsl(215, 20%, 17%);
+  --bg-canvas: #090c10;
+  --bg-surface: #0d1117;
+  --bg-elevated: #131922;
+  --bg-interactive: #1b2330;
 
-  --border-subtle: hsl(215, 18%, 18%);
-  --border-default: hsl(215, 16%, 24%);
-  --border-strong: hsl(215, 16%, 35%);
+  --border-subtle: #1b222c;
+  --border-default: #26303f;
+  --border-strong: #38465c;
 
-  --text-primary: hsl(210, 25%, 96%);
-  --text-secondary: hsl(214, 15%, 74%);
-  --text-muted: hsl(215, 13%, 54%);
+  --text-primary: #e6edf3;
+  --text-secondary: #9ca7b5;
+  --text-muted: #6e7681;
 
-  --accent-primary: hsl(199, 89%, 48%);
-  --accent-primary-hover: hsl(199, 89%, 42%);
-  --accent-emerald: hsl(160, 84%, 39%);
-  --accent-amber: hsl(38, 92%, 50%);
-  --accent-crimson: hsl(0, 84%, 60%);
+  --accent-primary: #38bdf8;
+  --accent-primary-hover: #0ea5e9;
+  --accent-emerald: #2ea043;
+  --accent-emerald-text: #3fb950;
+  --accent-amber: #d29922;
+  --accent-crimson: #f85149;
 
   --font-sans: 'Inter', 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --max-width: 1240px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-elevated: 0 16px 36px -8px rgba(0, 0, 0, 0.55);
+  --max-width: 1080px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
 }
 
 *,
@@ -61,7 +62,7 @@ a {
 
 code,
 pre,
-textarea.mono-input {
+.mono {
   font-family: var(--font-mono);
 }
 
@@ -72,17 +73,34 @@ textarea.mono-input {
   padding: 0 1.5rem;
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.5rem;
+  z-index: 999;
+  background: var(--accent-primary);
+  color: #090c10;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  left: 1rem;
+}
+
 /* ==========================================================================
-   Header & Interactive Top Tab Navigation
+   Top Header Bar (sentinelx.app minimal lowercase navigation)
    ========================================================================== */
 
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: hsla(216, 28%, 7%, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-default);
+  background-color: rgba(9, 12, 16, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .nav-bar {
@@ -90,124 +108,80 @@ textarea.mono-input {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
-  min-height: 4.25rem;
-  padding: 0.65rem 0;
+  gap: 0.75rem;
+  min-height: 3.6rem;
+  padding: 0.5rem 0;
 }
 
 .brand-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1.12rem;
+  font-size: 1rem;
   letter-spacing: -0.02em;
   color: var(--text-primary);
   cursor: pointer;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  color: var(--accent-primary);
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  font-weight: 700;
+.brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-emerald-text);
+  box-shadow: 0 0 8px var(--accent-emerald-text);
 }
 
 .version-tag {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
   background-color: var(--bg-elevated);
   border: 1px solid var(--border-default);
-  color: var(--accent-emerald);
+  color: var(--text-secondary);
 }
 
 .nav-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.2rem;
 }
 
 .nav-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  white-space: nowrap;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 0.45rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.81rem;
+  font-weight: 500;
+  padding: 0.32rem 0.62rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
 }
 
 .nav-tab-btn:hover {
   color: var(--text-primary);
   background-color: var(--bg-elevated);
-  border-color: var(--border-subtle);
 }
 
 .nav-tab-btn.active {
-  color: hsl(216, 28%, 7%);
-  background-color: var(--accent-primary);
-  border-color: var(--accent-primary);
-  font-weight: 700;
+  color: var(--text-primary);
+  background-color: var(--bg-interactive);
+  border-color: var(--border-default);
 }
 
 .nav-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-/* Workspace Sub-Header Tab Bar */
-.workspace-tab-strip {
-  background-color: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0.65rem 0;
-}
-
-.workspace-tab-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.workspace-status-pill {
-  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--accent-emerald);
-  display: inline-block;
-}
-
-/* Tab Views Visibility */
+/* View Filtering (Show All Manual vs Single Section Tab) */
 .tab-panel {
   display: none;
 }
@@ -221,7 +195,7 @@ body.show-all-tabs .tab-panel {
 }
 
 /* ==========================================================================
-   Buttons & Inputs
+   Buttons & Form Controls
    ========================================================================== */
 
 .btn {
@@ -230,80 +204,77 @@ body.show-all-tabs .tab-panel {
   justify-content: center;
   gap: 0.45rem;
   white-space: nowrap;
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 0.6rem 1.1rem;
+  padding: 0.48rem 0.9rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn-primary {
-  background-color: var(--accent-primary);
-  color: hsl(216, 28%, 7%);
-  font-weight: 700;
-}
-
-.btn-primary:hover {
-  background-color: var(--accent-primary-hover);
-}
-
-.btn-emerald {
-  background-color: var(--accent-emerald);
-  color: hsl(216, 28%, 7%);
-  font-weight: 700;
-}
-
-.btn-amber {
-  background-color: var(--accent-amber);
-  color: hsl(216, 28%, 7%);
-  font-weight: 700;
-}
-
-.btn-crimson {
-  background-color: hsla(0, 84%, 60%, 0.18);
-  color: var(--accent-crimson);
-  border-color: var(--accent-crimson);
-  font-weight: 700;
-}
-
-.btn-secondary {
+  border: 1px solid var(--border-default);
   background-color: var(--bg-elevated);
   color: var(--text-primary);
-  border-color: var(--border-default);
+  cursor: pointer;
+  transition: all 0.12s ease;
 }
 
-.btn-secondary:hover {
+.btn:hover {
   background-color: var(--bg-interactive);
   border-color: var(--border-strong);
 }
 
+.btn-primary {
+  background-color: var(--text-primary);
+  color: var(--bg-canvas);
+  border-color: var(--text-primary);
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.btn-accent {
+  background-color: rgba(56, 189, 248, 0.14);
+  color: var(--accent-primary);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.btn-accent:hover {
+  background-color: rgba(56, 189, 248, 0.22);
+}
+
+.btn-emerald {
+  background-color: rgba(46, 160, 67, 0.16);
+  color: var(--accent-emerald-text);
+  border-color: rgba(46, 160, 67, 0.45);
+}
+
+.btn-crimson {
+  background-color: rgba(248, 81, 73, 0.14);
+  color: var(--accent-crimson);
+  border-color: rgba(248, 81, 73, 0.45);
+}
+
 .btn-sm {
-  font-size: 0.82rem;
-  padding: 0.4rem 0.78rem;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
 }
 
 .btn-xs {
-  font-size: 0.76rem;
-  padding: 0.25rem 0.55rem;
+  font-size: 0.73rem;
+  padding: 0.22rem 0.52rem;
 }
 
 .form-control,
 .form-select {
   width: 100%;
-  padding: 0.62rem 0.85rem;
+  padding: 0.55rem 0.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .form-control:focus,
@@ -313,253 +284,393 @@ body.show-all-tabs .tab-panel {
 }
 
 textarea.form-control {
-  min-height: 110px;
-  resize: vertical;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  resize: vertical;
 }
 
 /* ==========================================================================
-   Hero Section & Quick-Start Terminal
+   Hero Section — sentinelx.app Split "install the agent" / "or connect" Layout
    ========================================================================== */
 
 .hero-section {
-  padding: 3.5rem 0 3rem;
+  padding: 3.25rem 0 2.75rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.hero-layout {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 2.5rem;
-  align-items: start;
-}
-
-.hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-primary);
-  margin-bottom: 0.75rem;
-}
-
-.hero-title {
-  margin: 0 0 1.1rem;
-  font-size: clamp(1.85rem, 3.3vw, 2.65rem);
-  font-weight: 800;
-  line-height: 1.22;
-  letter-spacing: -0.025em;
+.hero-headline {
+  margin: 0 0 0.65rem;
+  font-size: clamp(1.75rem, 3.2vw, 2.45rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   color: var(--text-primary);
 }
 
-.hero-lead {
-  margin: 0 0 1.5rem;
-  font-size: 1.02rem;
+.hero-subline {
+  margin: 0 0 2rem;
+  font-size: 1rem;
   color: var(--text-secondary);
-  max-width: 64ch;
+  max-width: 72ch;
 }
 
-.hero-cta-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+.hero-split-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
-.integrity-strip {
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-md);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  font-size: 0.83rem;
-  color: var(--text-secondary);
-}
-
-.integrity-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.35rem;
-}
-
-.integrity-hash {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--accent-emerald);
-  word-break: break-all;
-}
-
-.terminal-panel {
+.sx-box {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-elevated);
-  overflow: hidden;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.terminal-topbar {
+.sx-box-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background-color: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 1rem;
 }
 
-.terminal-tabs {
-  display: flex;
+.sx-box-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.os-tabs {
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  background-color: var(--bg-canvas);
+  padding: 0.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
 }
 
 .term-tab {
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  padding: 0.3rem 0.65rem;
-  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 4px;
   cursor: pointer;
 }
 
 .term-tab.active {
   background-color: var(--bg-interactive);
-  border-color: var(--border-default);
   color: var(--text-primary);
+  font-weight: 600;
 }
 
-.terminal-body {
-  padding: 1.2rem;
-  margin: 0;
-  font-size: 0.83rem;
+.cmd-caption {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.45rem;
+}
+
+.cmd-pre {
+  margin: 0 0 1rem;
+  padding: 0.95rem 1rem;
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   line-height: 1.6;
   color: var(--text-primary);
   overflow-x: auto;
-  min-height: 215px;
+  white-space: pre;
 }
 
-.terminal-footer {
+.sx-box-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+}
+
+.text-link {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-primary);
+  cursor: pointer;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+.connector-url-pill {
+  margin: 0.65rem 0;
+  padding: 0.6rem 0.8rem;
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent-emerald-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   sentinelx.app Signature Feature Blocks:
+   1. "Local-first architecture" + Link Map Diagram
+   2. "You decide what runs. Every attempt is logged." + audit_events Table
+   ========================================================================== */
+
+.showcase-section {
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.showcase-block {
+  margin-bottom: 2.5rem;
+}
+
+.showcase-block:last-child {
+  margin-bottom: 0;
+}
+
+.showcase-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.showcase-desc {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.94rem;
+}
+
+.artifact-frame {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.artifact-frame-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.65rem 1rem;
+  padding: 0.5rem 0.9rem;
   background-color: var(--bg-elevated);
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.79rem;
-  color: var(--text-muted);
-}
-
-/* ==========================================================================
-   Metrics Bar & Section Layout
-   ========================================================================== */
-
-.metrics-bar {
-  padding: 2rem 0;
-  background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1.5rem;
-}
-
-.metric-item {
-  padding-left: 1rem;
-  border-left: 2px solid var(--accent-primary);
-}
-
-.metric-value {
   font-family: var(--font-mono);
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-  margin-bottom: 0.25rem;
-}
-
-.metric-label {
-  font-size: 0.86rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
-.section {
-  padding: 3rem 0 4rem;
+/* Link Map Diagram (HOST -> HUB -> CLIENT) */
+.link-map-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1.35rem;
+}
+
+.map-node {
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+}
+
+.map-node-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  margin-bottom: 0.25rem;
+}
+
+.map-node-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 0.2rem;
+}
+
+.map-node-sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.map-arrow {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--accent-emerald-text);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Supported Stack Pills & 4 Stat Badges (sentinelx.app "Any AI client, one hub") */
+.stack-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.85rem 0 1.35rem;
+}
+
+.stack-pill {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+}
+
+.trust-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.trust-badge-item {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.trust-badge-item strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  margin-bottom: 0.15rem;
+}
+
+/* ==========================================================================
+   Numbered Manual Sections (01, 02, 03, 04, 05, Security, Reference)
+   ========================================================================== */
+
+.manual-section {
+  padding: 3rem 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.section-header {
+.manual-heading-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-bottom: 0.75rem;
 }
 
-.section-header-text {
-  max-width: 760px;
-}
-
-.section-kicker {
+.step-num {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 1.55rem;
+  font-weight: 700;
   color: var(--accent-primary);
-  margin-bottom: 0.4rem;
+  line-height: 1;
 }
 
-.section-title {
-  margin: 0 0 0.6rem;
-  font-size: clamp(1.45rem, 2.4vw, 2rem);
+.manual-title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.3vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.section-desc {
-  margin: 0;
+.manual-lead {
+  margin: 0 0 1.5rem;
   color: var(--text-secondary);
   font-size: 0.96rem;
+  max-width: 75ch;
+}
+
+/* Tool Primitives Grid (sentinelx.app "04 Operate" fixed tool list style) */
+.primitives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.primitive-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.83rem;
+}
+
+.primitive-row code {
+  color: var(--accent-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.primitive-row span {
+  color: var(--text-secondary);
+  text-align: right;
+  font-size: 0.79rem;
 }
 
 /* ==========================================================================
-   Cards, Grids, Tables & Badges
+   Tables, SOC Stat Cards, Simulator & Connector Cards
    ========================================================================== */
 
 .stat-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.35rem;
 }
 
 .stat-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 1rem 1.15rem;
+  padding: 0.85rem 1rem;
 }
 
 .stat-card-label {
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
   color: var(--text-secondary);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .stat-card-val {
   font-family: var(--font-mono);
-  font-size: 1.65rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -567,9 +678,9 @@ textarea.form-control {
 .panel-box {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: 1.35rem;
-  margin-bottom: 1.75rem;
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.35rem;
 }
 
 .panel-box-header {
@@ -578,85 +689,29 @@ textarea.form-control {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.65rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .panel-box-title {
   margin: 0;
-  font-size: 1.08rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .notice-banner {
-  padding: 0.8rem 1rem;
+  padding: 0.7rem 0.95rem;
   border-radius: var(--radius-sm);
   background-color: var(--bg-elevated);
-  border-left: 4px solid var(--accent-primary);
-  margin-bottom: 1.5rem;
-  font-size: 0.88rem;
-  color: var(--text-primary);
+  border-left: 3px solid var(--accent-primary);
+  margin-bottom: 1.25rem;
+  font-size: 0.84rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.feature-grid,
-.release-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-  gap: 1.35rem;
-}
-
-.feature-card,
-.release-card {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 1.4rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: border-color 0.15s ease;
-}
-
-.feature-card:hover,
-.release-card:hover {
-  border-color: var(--border-strong);
-}
-
-.feature-meta {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--accent-primary);
-  margin-bottom: 0.45rem;
-}
-
-.feature-card h3,
-.release-card h3 {
-  margin: 0 0 0.55rem;
-  font-size: 1.12rem;
-  font-weight: 700;
-}
-
-.feature-card p {
-  margin: 0 0 1rem;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-}
-
-.feature-list {
-  margin: 0 0 1.2rem;
-  padding-left: 1.15rem;
-  color: var(--text-secondary);
-  font-size: 0.86rem;
-}
-
-.feature-list li {
-  margin-bottom: 0.3rem;
+  gap: 0.5rem;
 }
 
 .table-wrapper {
@@ -670,12 +725,12 @@ textarea.form-control {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
 }
 
 .data-table th,
 .data-table td {
-  padding: 0.75rem 0.95rem;
+  padding: 0.62rem 0.85rem;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: top;
 }
@@ -683,10 +738,9 @@ textarea.form-control {
 .data-table th {
   background-color: var(--bg-elevated);
   color: var(--text-secondary);
+  font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.74rem;
   white-space: nowrap;
 }
 
@@ -697,60 +751,58 @@ textarea.form-control {
 .severity-pill {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.73rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 0.14rem 0.55rem;
-  border-radius: 999px;
+  padding: 0.1rem 0.48rem;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
-.sev-CRITICAL {
-  background-color: hsla(0, 84%, 60%, 0.18);
+.sev-CRITICAL,
+.sev-refused {
+  background-color: rgba(248, 81, 73, 0.16);
   color: var(--accent-crimson);
-  border: 1px solid var(--accent-crimson);
+  border: 1px solid rgba(248, 81, 73, 0.45);
 }
 
 .sev-HIGH {
-  background-color: hsla(38, 92%, 50%, 0.18);
+  background-color: rgba(210, 153, 34, 0.16);
   color: var(--accent-amber);
-  border: 1px solid var(--accent-amber);
+  border: 1px solid rgba(210, 153, 34, 0.45);
 }
 
 .sev-MEDIUM {
-  background-color: hsla(199, 89%, 48%, 0.18);
+  background-color: rgba(56, 189, 248, 0.15);
   color: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
+  border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
 .sev-LOW,
 .sev-INFO,
-.sev-PASSED {
-  background-color: hsla(160, 84%, 39%, 0.18);
-  color: var(--accent-emerald);
-  border: 1px solid var(--accent-emerald);
+.sev-PASSED,
+.sev-ok {
+  background-color: rgba(46, 160, 67, 0.16);
+  color: var(--accent-emerald-text);
+  border: 1px solid rgba(46, 160, 67, 0.45);
 }
 
-/* ==========================================================================
-   Simulator & Dual Output Panes
-   ========================================================================== */
-
+/* Simulator Elements */
 .scenario-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
+  gap: 0.45rem;
+  margin-bottom: 0.9rem;
 }
 
 .scenario-btn {
-  background-color: var(--bg-elevated);
+  background-color: var(--bg-canvas);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
-  padding: 0.45rem 0.85rem;
+  padding: 0.38rem 0.75rem;
   border-radius: var(--radius-sm);
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .scenario-btn:hover,
@@ -763,32 +815,32 @@ textarea.form-control {
 .sim-input-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
 }
 
 .sim-input {
-  flex: 1 1 320px;
-  padding: 0.65rem 0.9rem;
+  flex: 1 1 300px;
+  padding: 0.55rem 0.8rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 .sim-results-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.15rem;
+  gap: 1rem;
 }
 
 .sim-pane {
   background-color: var(--bg-canvas);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 1.1rem;
+  padding: 0.95rem;
 }
 
 .sim-pane-header {
@@ -797,36 +849,33 @@ textarea.form-control {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.7rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.45rem;
   border-bottom: 1px solid var(--border-subtle);
-  font-size: 0.83rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
   color: var(--text-secondary);
 }
 
 .sim-pre {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.55;
   color: var(--text-primary);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 360px;
+  max-height: 330px;
   overflow-y: auto;
 }
 
-/* ==========================================================================
-   External API Connector Cards (/settings)
-   ========================================================================== */
-
+/* Connector Cards */
 .conn-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 1.35rem;
-  margin-bottom: 1.25rem;
+  padding: 1.15rem;
+  margin-bottom: 1rem;
 }
 
 .conn-header {
@@ -834,86 +883,128 @@ textarea.form-control {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .conn-title {
-  margin: 0 0 0.3rem;
-  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .conn-desc {
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   color: var(--text-secondary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .conn-examples {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
 .form-grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.9rem;
-  margin-bottom: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .field-label {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 
 .conn-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem;
-  margin-top: 0.85rem;
+  gap: 0.5rem;
 }
 
 .conn-feedback {
-  margin-top: 0.85rem;
-  padding: 0.7rem 0.95rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
   border-radius: var(--radius-sm);
   background-color: var(--bg-canvas);
   border: 1px solid var(--border-default);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   display: none;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+/* Reference & Security Lists (sentinelx.app style) */
+.security-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.security-points li {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.security-points li strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ref-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ref-card h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
 .hash-box {
-  margin: 0.75rem 0;
-  padding: 0.6rem 0.8rem;
+  margin: 0.65rem 0;
+  padding: 0.5rem 0.7rem;
   background-color: var(--bg-canvas);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  color: var(--accent-emerald);
+  font-size: 0.73rem;
+  color: var(--accent-emerald-text);
   word-break: break-all;
 }
 
-/* ==========================================================================
-   Footer & Responsive
-   ========================================================================== */
-
+/* Footer (sentinelx.app minimal footer) */
 .site-footer {
   padding: 2.5rem 0;
   background-color: var(--bg-canvas);
   color: var(--text-muted);
-  font-size: 0.86rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
 
 .footer-inner {
@@ -927,17 +1018,13 @@ textarea.form-control {
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.15rem;
+  gap: 0.85rem;
 }
 
-.footer-links a:hover,
-.footer-links button:hover {
-  color: var(--text-primary);
-}
-
-@media (max-width: 960px) {
-  .hero-layout,
-  .sim-results-grid {
+@media (max-width: 900px) {
+  .hero-split-grid,
+  .sim-results-grid,
+  .link-map-grid {
     grid-template-columns: 1fr;
   }
 }

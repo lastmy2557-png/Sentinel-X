@@ -201,11 +201,20 @@
     ].join("\n")
   };
 
+  const TERMINAL_CAPTIONS = {
+    windows_exe: "On Windows x64 (pre-compiled standalone PE32+ executable included in dist\\sentinel-x.exe):",
+    python_cli: "On Linux or macOS (Python 3.11+ with zero external runtime dependencies):",
+    docker_ghcr: "In Docker / Container runtime (official non-root image on GitHub Packages):",
+    anti_rea: "Cryptographic Release Protection (external RFC 8032 Ed25519 keygen, sign & verify):"
+  };
+
   function initTerminalTabs() {
     const tabs = document.querySelectorAll(".term-tab");
     const codeEl = document.getElementById("hero-terminal-code");
+    const captionEl = document.getElementById("hero-cmd-caption");
     const copyBtn = document.getElementById("btn-copy-terminal");
     const copyHashBtn = document.getElementById("btn-copy-exe-hash");
+    const copyHubBtn = document.getElementById("btn-copy-hub-url");
 
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -217,19 +226,29 @@
         if (codeEl && TERMINAL_SNIPPETS[key]) {
           codeEl.textContent = TERMINAL_SNIPPETS[key];
         }
+        if (captionEl && TERMINAL_CAPTIONS[key]) {
+          captionEl.textContent = TERMINAL_CAPTIONS[key];
+        }
       });
     });
 
     if (copyBtn && codeEl) {
       copyBtn.addEventListener("click", function () {
-        copyTextToClipboard(codeEl.textContent || "", copyBtn, "คัดลอกคำสั่งแล้ว (Copied)");
+        copyTextToClipboard(codeEl.textContent || "", copyBtn, "Copied ✓");
       });
     }
 
     if (copyHashBtn) {
       copyHashBtn.addEventListener("click", function () {
         const hashNode = document.getElementById("live-exe-sha256");
-        copyTextToClipboard(hashNode ? hashNode.textContent.trim() : "", copyHashBtn, "คัดลอก SHA-256 แล้ว");
+        copyTextToClipboard(hashNode ? hashNode.textContent.trim() : "", copyHashBtn, "copied ✓");
+      });
+    }
+
+    if (copyHubBtn) {
+      copyHubBtn.addEventListener("click", function () {
+        const hubNode = document.getElementById("connector-hub-url");
+        copyTextToClipboard(hubNode ? hubNode.textContent.trim() : "", copyHubBtn, "copied ✓");
       });
     }
   }
