@@ -174,8 +174,9 @@
   - แก้ไข: `sentinel_x/core/database.py`, `sentinel_x/integrations/connectors.py`, `sentinel_x/dashboard/server.py`, `sentinel_x/platform.py`, `ARCHITECTURE.md`, `PROJECT_STATE.md`, `TODO.md`, `PROCESS.md`, `DEVELOPMENT_LOG.md`
 - **การตัดสินใจทางเทคนิค:**
   - ห้ามส่งค่า API Key ดิบกลับไปยังหน้าเว็บหรือ API Response เด็ดขาด (ส่งกลับเฉพาะค่าที่ผ่าน `mask_secret_value` แล้วเท่านั้น) และหากผู้ใช้เว้นช่อง API Key ว่างขณะกดบันทึก ระบบจะคงค่า API Key เดิมที่บันทึกไว้ในฐานข้อมูลโดยไม่ต้องกรอกซ้ำ
+  - ปรับปรุง CSS Layout ของ `.topbar`, `.nav`, `.nav a`, `.conn-header`, และ `.checkbox-row` ใน `sentinel_x/dashboard/server.py` ให้ใช้ `display: flex; flex-wrap: wrap; gap: ...` และ `display: inline-flex; white-space: nowrap;` บนปุ่มนำทาง เพื่อป้องกันไม่ให้ปุ่ม `ตั้งค่า API บริการภายนอก (API Settings)` ตัดบรรทัดทับกับปุ่ม `SOC Dashboard`
 - **Tests ที่รันและผลการทดสอบ:**
   - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 22/22 tests (`OK`)
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`63 files inventoried`, `0 findings`)
 - **ปัญหาที่พบ:**
-  - ไม่มี พร้อม Commit, Push, สร้าง Git Tag `v0.1.0` และเผยแพร่ GitHub Release `v0.1.0`
+  - แก้ไขปัญหาปุ่มเมนูนำทางบนหัวหน้า `/settings` ซ้อนทับกันเมื่อข้อความยาวเสร็จเรียบร้อย พร้อม Commit, Push, และอัปเดต Git Tag `v0.1.0`

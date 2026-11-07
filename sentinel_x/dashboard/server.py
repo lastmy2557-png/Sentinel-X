@@ -139,11 +139,14 @@ class DashboardService:
 <meta charset="utf-8">
 <title>Sentinel-X Security Operations Dashboard</title>
 <style>
+*, *::before, *::after {{ box-sizing: border-box; }}
 body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
-.topbar {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
-.nav a {{ color: #38bdf8; text-decoration: none; margin-left: 1rem; padding: 0.45rem 0.85rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; }}
+.topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
+.nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
+.nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
 .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
-.notice {{ padding: 0.75rem 1rem; border-radius: 6px; background: #1e293b; border-left: 4px solid #38bdf8; margin-bottom: 1.5rem; }}
+.notice {{ padding: 0.75rem 1rem; border-radius: 6px; background: #1e293b; border-left: 4px solid #38bdf8; margin-bottom: 1.5rem; line-height: 1.5; }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }}
 .card {{ background: #1e293b; padding: 1rem; border-radius: 6px; border: 1px solid #334155; }}
 .card h3 {{ margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #94a3b8; }}
@@ -156,7 +159,7 @@ code {{ color: #38bdf8; }}
 </head>
 <body>
 <div class="topbar">
-  <h1 style="margin:0;">Sentinel-X — Security Operations Dashboard</h1>
+  <h1>Sentinel-X — Security Operations Dashboard</h1>
   <div class="nav">
     <a href="/" class="active">SOC Dashboard</a>
     <a href="/settings">ตั้งค่า API บริการภายนอก (API Settings)</a>
@@ -219,7 +222,7 @@ code {{ color: #38bdf8; }}
                 f"""
 <div class="conn-card" id="card-{cid}">
   <div class="conn-header">
-    <div>
+    <div class="conn-title-group">
       <h2>{esc(str(c['display_name']))}</h2>
       <div class="desc">{esc(str(c['description_th']))}</div>
       <div class="examples"><strong>บริการที่รองรับ:</strong> {esc(str(c['supported_examples']))}</div>
@@ -243,7 +246,7 @@ code {{ color: #38bdf8; }}
       </div>
       <div class="field checkbox-row">
         <label><input type="checkbox" id="enabled-{cid}" {checked_attr}> เปิดใช้งานการเชื่อมต่อนี้ (Enable Integration)</label>
-        <label style="margin-left:1.5rem;"><input type="checkbox" id="clear-{cid}"> ล้างค่า API Key เดิมที่บันทึกไว้ (Clear Saved Secret)</label>
+        <label><input type="checkbox" id="clear-{cid}"> ล้างค่า API Key เดิมที่บันทึกไว้ (Clear Saved Secret)</label>
       </div>
     </div>
     <div class="btn-row">
@@ -263,37 +266,42 @@ code {{ color: #38bdf8; }}
 <meta charset="utf-8">
 <title>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก</title>
 <style>
+*, *::before, *::after {{ box-sizing: border-box; }}
 body {{ font-family: system-ui, sans-serif; margin: 1.5rem 2rem; background: #0f172a; color: #f8fafc; }}
-.topbar {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
-.nav a {{ color: #38bdf8; text-decoration: none; margin-left: 1rem; padding: 0.45rem 0.85rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; }}
+.topbar {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #334155; padding-bottom: 0.85rem; }}
+.topbar h1 {{ margin: 0; font-size: 1.45rem; line-height: 1.35; flex: 1 1 320px; }}
+.nav {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; flex-shrink: 0; }}
+.nav a {{ display: inline-flex; align-items: center; white-space: nowrap; color: #38bdf8; text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; border: 1px solid #334155; background: #1e293b; font-weight: 600; font-size: 0.92rem; line-height: 1.2; }}
 .nav a.active {{ background: #0284c7; color: #ffffff; border-color: #38bdf8; }}
 .notice {{ padding: 0.85rem 1rem; border-radius: 6px; background: #1e293b; border-left: 4px solid #38bdf8; margin-bottom: 1.5rem; line-height: 1.5; }}
 .conn-card {{ background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem; }}
-.conn-header {{ display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
-.conn-header h2 {{ margin: 0 0 0.35rem 0; font-size: 1.15rem; color: #f8fafc; }}
-.desc {{ color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.25rem; }}
-.examples {{ color: #94a3b8; font-size: 0.85rem; }}
-.badge {{ padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: bold; color: #ffffff; }}
+.conn-header {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.75rem; }}
+.conn-title-group {{ flex: 1 1 280px; min-width: 0; }}
+.conn-header h2 {{ margin: 0 0 0.35rem 0; font-size: 1.15rem; color: #f8fafc; line-height: 1.35; }}
+.desc {{ color: #cbd5e1; font-size: 0.92rem; margin-bottom: 0.25rem; line-height: 1.45; }}
+.examples {{ color: #94a3b8; font-size: 0.85rem; line-height: 1.4; }}
+.badge {{ display: inline-flex; align-items: center; white-space: nowrap; flex-shrink: 0; padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: bold; color: #ffffff; }}
 .form-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem; }}
-.field {{ display: flex; flex-direction: column; }}
-.field label {{ font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.35rem; font-weight: 600; }}
+.field {{ display: flex; flex-direction: column; min-width: 0; }}
+.field label {{ font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.4rem; font-weight: 600; line-height: 1.4; word-break: break-word; }}
 .field input[type="text"], .field input[type="url"], .field input[type="password"] {{
-  padding: 0.55rem 0.75rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.9rem;
+  width: 100%; padding: 0.55rem 0.75rem; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 0.9rem;
 }}
-.checkbox-row {{ flex-direction: row; align-items: center; grid-column: 1 / -1; padding-top: 0.25rem; }}
+.checkbox-row {{ flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; grid-column: 1 / -1; padding-top: 0.25rem; }}
+.checkbox-row label {{ display: inline-flex; align-items: center; gap: 0.45rem; margin-bottom: 0; cursor: pointer; }}
 .key-state {{ color: #38bdf8; font-family: monospace; }}
-.btn-row {{ display: flex; gap: 0.75rem; }}
+.btn-row {{ display: flex; flex-wrap: wrap; gap: 0.75rem; }}
 button {{ padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; }}
 .btn-save {{ background: #0284c7; color: #ffffff; }}
 .btn-save:hover {{ background: #0369a1; }}
 .btn-test {{ background: #334155; color: #f8fafc; border: 1px solid #475569; }}
 .btn-test:hover {{ background: #475569; }}
-.result-box {{ margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.9rem; background: #0f172a; border-left: 4px solid #38bdf8; }}
+.result-box {{ margin-top: 0.85rem; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.9rem; background: #0f172a; border-left: 4px solid #38bdf8; line-height: 1.45; word-break: break-word; }}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <h1 style="margin:0;">Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings)</h1>
+  <h1>Sentinel-X — ตั้งค่าการเชื่อมต่อ API บริการภายนอก (External API Settings)</h1>
   <div class="nav">
     <a href="/">SOC Dashboard</a>
     <a href="/settings" class="active">ตั้งค่า API บริการภายนอก (API Settings)</a>

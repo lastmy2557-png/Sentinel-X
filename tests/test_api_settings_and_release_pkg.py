@@ -49,7 +49,7 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
 
             raw_secret = "sx_prod_secret_token_987654"
             try:
-                # 1. GET /settings renders HTML page with all 5 connector cards
+                # 1. GET /settings renders HTML page with all 5 connector cards and non-overlapping nav layout
                 with opener.open(f"http://127.0.0.1:{port}/settings") as resp:
                     self.assertEqual(resp.status, 200)
                     html_text = resp.read().decode("utf-8")
@@ -58,6 +58,8 @@ class TestAPISettingsAndReleasePackages(unittest.TestCase):
                     self.assertIn("threat_intel_feed", html_text)
                     self.assertIn("webhook_notifier", html_text)
                     self.assertIn("external_security_tool", html_text)
+                    self.assertIn(".nav a { display: inline-flex; align-items: center; white-space: nowrap;", html_text)
+                    self.assertIn(".topbar { display: flex; flex-wrap: wrap;", html_text)
 
                 # 2. POST /api/v1/settings/connectors to configure SIEM connector
                 post_payload = json.dumps(
