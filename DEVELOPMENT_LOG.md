@@ -290,7 +290,9 @@
 - **Tests ที่รันและผลการทดสอบ:**
   - `python3 -m unittest discover -s tests -p "test_*.py" -v` -> ผ่าน 24/24 tests (`OK`)
   - `python3 -m sentinel_x.security.release_protection.cli audit --root . --format markdown` -> `PASSED` (`0 findings`)
-- **ปัญหาที่พบ:**
-  - ไม่มี พร้อมออก Patch `v0.1.5`, คอมไพล์ `dist/sentinel-x.exe` ใหม่, Push ขึ้น GitHub และเปิด Repository เป็น Public
+- **ปัญหาที่พบและการแก้ไข (`v0.1.6`):**
+  - บน GitHub Actions Runner (`ubuntu-latest`) ไม่มีคำสั่ง `llvm-dlltool` และ `lld-link` ติดตั้งไว้เป็นค่าเริ่มต้น ทำให้ `test_patch_generator_and_windows_pe_zipapp_compiler` ใน Job `Automated Tests & Anti-REA Audit` ล้มเหลว
+  - แก้ไขโดยเพิ่ม Pre-compiled 64-bit PE32+ Console Stub Fallback ใน `build_windows_pe_zipapp_exe()` (`scripts/build_exe.py`) เมื่อเครื่องไม่มี `llvm-dlltool`/`lld-link` และปรับปรุง `.github/workflows/release-and-package.yml` ให้ทำงานผ่านครบทุก Job ใน `v0.1.6`
+
 
 

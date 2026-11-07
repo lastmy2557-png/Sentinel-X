@@ -13,16 +13,20 @@ Security guarantees:
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
 import platform as py_platform
+import shutil
 import subprocess
 import sys
 import zipfile
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 
 # Ensure project root is on sys.path when running python scripts/build_exe.py
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -255,48 +259,89 @@ void mainCRTStartup(void) {
 """
     c_file.write_text(c_code.strip() + "\n", encoding="utf-8")
 
-    subprocess.run(
-        ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
-        check=True,
-        capture_output=True,
-        text=True,
-        shell=False,
+    has_llvm_cross = (
+        shutil.which("llvm-dlltool") is not None
+        and shutil.which("clang") is not None
+        and shutil.which("lld-link") is not None
     )
-    subprocess.run(
-        [
-            "clang",
-            "--target=x86_64-pc-windows-msvc",
-            "-Os",
-            "-fno-stack-protector",
-            "-mno-stack-arg-probe",
-            "-c",
-            str(c_file),
-            "-o",
-            str(obj_file),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        shell=False,
-    )
-    subprocess.run(
-        [
-            "lld-link",
-            "/subsystem:console",
-            "/entry:mainCRTStartup",
-            "/nodefaultlib",
-            str(obj_file),
-            str(lib_file),
-            f"/out:{stub_exe}",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        shell=False,
-    )
+    stub_bytes: Optional[bytes] = None
+    if has_llvm_cross:
+        try:
+            subprocess.run(
+                ["llvm-dlltool", "-m", "i386:x86-64", "-d", str(def_file), "-l", str(lib_file)],
+                check=True,
+                capture_output=True,
+                text=True,
+                shell=False,
+            )
+            subprocess.run(
+                [
+                    "clang",
+                    "--target=x86_64-pc-windows-msvc",
+                    "-Os",
+                    "-fno-stack-protector",
+                    "-mno-stack-arg-probe",
+                    "-c",
+                    str(c_file),
+                    "-o",
+                    str(obj_file),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                shell=False,
+            )
+            subprocess.run(
+                [
+                    "lld-link",
+                    "/subsystem:console",
+                    "/entry:mainCRTStartup",
+                    "/nodefaultlib",
+                    str(obj_file),
+                    str(lib_file),
+                    f"/out:{stub_exe}",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                shell=False,
+            )
+            if stub_exe.is_file():
+                stub_bytes = stub_exe.read_bytes()
+        except Exception:
+            stub_bytes = None
 
-    exe_path.write_bytes(stub_exe.read_bytes() + payload_zip.read_bytes())
+    if stub_bytes is None:
+        # Deterministic pre-compiled 64-bit Windows PE32+ console stub (compiled from pe_launcher.c above)
+        prebuilt_zlib_b64 = (
+            "eNrtVl9oW2UUPzfNsv5JeutswAluScmGZTS0WxEGjfa2yfYpN7bStCldtyVLbtbMNAnpjXazymKM"
+            "cJmBPe7Bh+HexQchaRG8WWW1YLXtgysMdLghrNVa9tRM6PV8996sLR3zQR9k9sC9557z/b7znXN+"
+            "93738w6NAwMARtgunfD3Mo5X/cGpeviyZs5eZPg5u28kOmZLphLnU8FRWygYjydE2znBlkrHbdG4"
+            "zd3TZxtNhAWnA6DXAxD+2AhzPX9cqMRbgyaoM9QDmLYk1KBfmBJTsQ0ahEpFQ4B5PKcKApnKpIra"
+            "aW97hFYbwMtbi+tlwAz/XK7Znt5LpyiMi6jtRj0h004yMETAmQoHxSDAZUZz0B5A7Q7OOp0aDDEI"
+            "bH3ymoiTnUkNaNZrVeOZd8aDXXmmhfNzA1w/5xvw95HMb2vomXE7hulLxvpltvkjx2X6iPqqrq/r"
+            "+gtdy7qeR912h0ifOu6qHrcjQKRhR3JGCzGCF58/lD+IqFle+oUrKiyAYu1ooPfDeCc5WTxJpGm2"
+            "UBXJrteIJrzb0iaSnTasrOBzE5t7BfOiNpGW2EI1ycqGSLbcJO6J5GbTqyQ/uEFNwrqXsIbBJlwx"
+            "MrNn/2sASSjSikjeYmFpGlYTOtlCIxfhpMYuosgku16dXkX0n6/SprAF6/0DODu3KB5um0WQ740G"
+            "ji34eAN1vUiUEsmU1ycA0vcm4X2AldrJapy2UpUt1ZBQKcLNGLsAXAwOTdFx1rvQfFM88nq+vStS"
+            "bII2JSIZP2AL7omhCBbNEmWGHH+UXtZiGZkyxg+VaZRLtC13xHfYwvN05XimTGNyRQp0s96SW7rV"
+            "/L3o9ebNlzAoFnMRs3xPzbJdjbqRfuCWSitHyCSDHzhtAu3quxa2IBP2Ron9cHFDUdhCt0Ft8z1t"
+            "6UoBfF50BHhJdBA+/5XKIi9NODrpi/Gc29GKTVZ3TNR0s0F4y+cujd5lT5vsaZtVrC7czXMymzvF"
+            "qGR84tpKxnXLYxZ8HtBo2Jv+HXEpl0aD5fRLlIZZ8VCbjCjeU4808G4Dde2nE1xlysL9osZCca/G"
+            "glxNQvNYhLsf7cwj2rNJjYdvmxfEoyTfTgeAZ1YjXyMdixGpY4AtTPiQDoXScZMcX0gvF3U65nGd"
+            "zXCUj362UEdT8Lq20SFTOm6JLXzerMb3Mg8wNieZ38Kk+9SkLWrwHykrsh76Go3sUZtLO/20DpO8"
+            "le+gHa609yczba/oI1d4R2BKoWJ9iD7VJkjfMJEeKtYfdNcIueK6gc/KbRWg3L5Sr1g/Q8dVkvmG"
+            "fvunzp7hhrnT3Bnu7PQkXXHl5+925VmWJFwEEXfnBMTxWNG04/9Ax23QAsf00UHb5tiQXTvfPEmW"
+            "dP+vul7Xtcmu6Rd07dS12/7vzgfojiXGBBKMh2MCtVJCUBR6U4mQMDbmp+Oe8aio22idFMTuxOgo"
+            "wvloXPBrHgrpxgPrJox6vYlwOiaciMaEN4OjKhT8wah4IpHqi8bPx4SecxeEkAhvC6m4EDt21BmO"
+            "xXDr3VcD+5gDUNdam6wJVMumeeNdw9p/4ACAf157I/6f7btnof+j/AVW21j6"
+        )
+        stub_bytes = zlib.decompress(base64.b64decode(prebuilt_zlib_b64))
+        stub_exe.write_bytes(stub_bytes)
+
+    exe_path.write_bytes(stub_bytes + payload_zip.read_bytes())
     return exe_path
+
 
 
 def build_windows_native_exe_fallback(

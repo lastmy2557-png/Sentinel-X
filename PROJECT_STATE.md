@@ -19,8 +19,9 @@
   - `PHASE 11 — OFFICIAL SENTINEL-X WEBSITE FOR VERCEL DEPLOYMENT` `[COMPLETED]`
   - `PHASE 12 — FULL INTERACTIVE MULTI-TAB WEB CONSOLE ON VERCEL` `[COMPLETED]`
   - `PHASE 13 — SENTINELX.APP TECHNICAL-MANUAL LAYOUT REDESIGN (v0.1.4)` `[COMPLETED]`
-  - `PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES & PUBLIC GITHUB REPOSITORY (v0.1.5)` `[COMPLETED]`
+  - `PHASE 14 — PRIVATE INTERNAL TASK/PROCESS FILES, PUBLIC GITHUB REPOSITORY & CI/CD FIX (v0.1.5 – v0.1.6)` `[COMPLETED]`
 - **สถานะถัดไป:** `[COMPLETED]` — พัฒนาและทดสอบครบทั้ง Phase 0–14
+
 
 ## 3. Architecture ปัจจุบัน (Current Architecture)
 - **รูปแบบ:** Modular Monolith (Python 3.11+, Local-first) + `sentinelx.app`-Style Interactive Technical Manual & Multi-Tab Web Console (`public/` & `vercel.json` บน `https://sentinel-x-weld-tau.vercel.app/`)

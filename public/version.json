@@ -1,14 +1,14 @@
 {
   "platform": "Sentinel-X Cybersecurity & SOC Platform",
-  "version": "0.1.5",
-  "tag": "v0.1.5",
+  "version": "0.1.6",
+  "tag": "v0.1.6",
   "exe_name": "sentinel-x.exe",
   "exe_size_bytes": 73852,
-  "exe_sha256": "fedcb8c3f349646d922ed6137d6521e193afb0ccaebe1206b10c535042b6ba95",
-  "patch_file": "patches/v0.1.5.patch",
-  "patch_sha256": "ae297957ded1b0c57d1dc79872841092d95339bb61df32af8a20a1652c96369a",
+  "exe_sha256": "328f1506ca5ec0a1ddb114c5beabbf7affe8aca6f23c8d915ad1333c4f447802",
+  "patch_file": "patches/v0.1.6.patch",
+  "patch_sha256": "c24c2d64391673a4f4d01dcf0c416a4c8abbd9b391177a79a2f8c1ef49f0af03",
   "github_repo": "https://github.com/lastmy2557-png/Sentinel-X",
-  "github_release_url": "https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v0.1.5",
+  "github_release_url": "https://github.com/lastmy2557-png/Sentinel-X/releases/tag/v0.1.6",
   "ghcr_image": "ghcr.io/lastmy2557-png/sentinel-x:latest",
-  "updated_at": "2026-11-07T16:05:23.646441+00:00"
+  "updated_at": "2026-11-07T16:23:33.656891+00:00"
 }
